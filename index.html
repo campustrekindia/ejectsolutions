@@ -7,24 +7,71 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* --- THEMING SYSTEM --- */
         :root {
+            /* Default: Dark Tech Theme */
+            --bg-main: #0f172a; /* Slate-900 */
+            --bg-card: #1e293b; /* Slate-800 */
+            --bg-nav: rgba(15, 23, 42, 0.8);
+            
+            --text-main: #f8fafc; /* Slate-50 */
+            --text-muted: #94a3b8; /* Slate-400 */
+            
             --primary: #8b5cf6; /* Violet-500 */
             --accent: #d946ef;  /* Fuchsia-500 */
-            --dark-bg: #0f172a; /* Slate-900 */
-            --card-bg: #1e293b; /* Slate-800 */
+            
+            --logo-filter: brightness(0) invert(1); /* Make logo white */
+            --blob-opacity: 0.4;
+            
+            --toggle-bg: rgba(30, 41, 59, 0.7);
+            --toggle-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Funky Theme Override */
+        [data-theme="funky"] {
+            --bg-main: #fffbeb; /* Amber-50 (Creamy) */
+            --bg-card: #ffffff; /* White */
+            --bg-nav: rgba(255, 255, 255, 0.85);
+
+            --text-main: #1e293b; /* Slate-900 */
+            --text-muted: #475569; /* Slate-600 */
+
+            --primary: #db2777; /* Pink-600 */
+            --accent: #06b6d4;  /* Cyan-500 */
+            
+            --logo-filter: none; /* Original Logo Colors */
+            --blob-opacity: 0.2;
+
+            --toggle-bg: rgba(255, 255, 255, 0.7);
+            --toggle-border: rgba(0, 0, 0, 0.1);
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: var(--dark-bg);
-            color: #f8fafc;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             overflow-x: hidden;
             width: 100%;
             max-width: 100vw;
+            -webkit-overflow-scrolling: touch;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
+
+        /* Utility classes mapped to variables */
+        .theme-bg-main { background-color: var(--bg-main); }
+        .theme-bg-card { background-color: var(--bg-card); }
+        .theme-bg-nav { background-color: var(--bg-nav); }
+        .theme-text-main { color: var(--text-main); }
+        .theme-text-muted { color: var(--text-muted); }
+        
+        .theme-logo { filter: var(--logo-filter); transition: filter 0.5s ease; }
 
         /* Canvas Background */
         #neural-canvas {
@@ -33,165 +80,123 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1; /* Behind everything */
-            pointer-events: none; /* Let clicks pass through */
+            z-index: -1;
+            pointer-events: none;
         }
 
-        /* Selection Color Update */
+        /* Selection Color */
         ::selection {
             background-color: var(--primary);
             color: white;
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--dark-bg);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
         /* Animation Classes */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .stagger-1 { transition-delay: 100ms; }
         .stagger-2 { transition-delay: 200ms; }
         .stagger-3 { transition-delay: 300ms; }
 
-        /* Marquee Animation */
-        .marquee-container {
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-            width: 100%;
-            max-width: 100vw;
-        }
+        /* Marquee */
+        .marquee-container { overflow: hidden; white-space: nowrap; position: relative; width: 100%; max-width: 100vw; transform: translateZ(0); }
+        .marquee-content { display: inline-block; animation: marquee 25s linear infinite; will-change: transform; transform: translate3d(0, 0, 0); }
+        .mask-gradient { mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
+        .marquee-content:hover { animation-play-state: paused; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        .marquee-content {
-            display: inline-block;
-            animation: marquee 25s linear infinite;
-        }
-
-        .mask-gradient {
-            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-        }
-
-        .marquee-content:hover {
-            animation-play-state: paused;
-        }
-
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        /* Updated Gradient Text */
+        /* Gradient Text */
         .text-gradient {
-            background: linear-gradient(to right, #a78bfa, #e879f9);
+            background: linear-gradient(to right, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         /* Button Hover Glow */
-        .btn-glow {
-            transition: all 0.3s ease;
-        }
-        .btn-glow:hover {
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
-            transform: translateY(-2px);
-        }
+        .btn-glow { transition: all 0.3s ease; }
+        .btn-glow:hover { box-shadow: 0 0 15px var(--primary); transform: translateY(-2px); }
 
-        /* 3D Tilt Card Effect */
-        .tilt-card {
-            transition: transform 0.1s ease-out; /* Fast transition for mouse movement */
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
+        /* 3D Tilt Card */
+        .tilt-card { transition: transform 0.1s ease-out, border-color 0.3s; transform-style: preserve-3d; perspective: 1000px; }
 
-        /* Floating Background Blobs */
+        /* Floating Blobs */
         .floating-blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-            animation: floatLoop 10s infinite ease-in-out;
-            z-index: -2;
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--blob-opacity); animation: floatLoop 10s infinite ease-in-out; z-index: -2; will-change: transform; transition: opacity 0.5s ease;
         }
-        
-        .blob-1 { background: #8b5cf6; width: 300px; height: 300px; top: 10%; left: -100px; animation-delay: 0s; }
-        .blob-2 { background: #d946ef; width: 250px; height: 250px; bottom: 20%; right: -50px; animation-delay: 2s; }
+        .blob-1 { background: var(--primary); width: 300px; height: 300px; top: 10%; left: -100px; }
+        .blob-2 { background: var(--accent); width: 250px; height: 250px; bottom: 20%; right: -50px; animation-delay: 2s; }
         .blob-3 { background: #3b82f6; width: 200px; height: 200px; top: 40%; right: 20%; animation-delay: 4s; }
-
-        @keyframes floatLoop {
-            0% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0, 0) scale(1); }
-        }
+        @keyframes floatLoop { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0, 0) scale(1); } }
 
         /* Nav Scan Animation */
-        .scan-active {
-            position: relative;
-            overflow: hidden; /* Ensures the scan line stays within bounds */
-        }
-
+        .scan-active { position: relative; overflow: hidden; }
         .scan-active::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transform: skewX(-20deg) translateX(-150%);
-            animation: scanPass 1.5s ease-in-out forwards;
-            pointer-events: none;
-            z-index: 100;
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-20deg) translateX(-150%); animation: scanPass 1.5s ease-in-out forwards; pointer-events: none; z-index: 100;
+        }
+        @keyframes scanPass { 0% { transform: skewX(-20deg) translateX(-150%); } 100% { transform: skewX(-20deg) translateX(150%); } }
+
+        /* View Management */
+        .view-section { display: none; width: 100%; max-width: 100%; }
+        .view-section.active-view { display: block; animation: fadeIn 0.4s ease-out; }
+
+        /* Merch Specific Styling */
+        .merch-badge {
+            transform: rotate(-5deg); transition: transform 0.3s;
+        }
+        .merch-card:hover .merch-badge {
+            transform: rotate(5deg) scale(1.1);
+        }
+        
+        /* Merch Toggle Button - Glassmorphism Region */
+        .merch-toggle-container {
+            position: fixed;
+            top: 120px; /* Positioned below nav */
+            right: 20px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            
+            /* Glassmorphism */
+            background: var(--toggle-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--toggle-border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            
+            transition: all 0.3s ease;
+            transform: translateZ(0); /* Hardware accelerate */
+        }
+        
+        .merch-toggle-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        @keyframes scanPass {
-            0% { transform: skewX(-20deg) translateX(-150%); }
-            100% { transform: skewX(-20deg) translateX(150%); }
-        }
-
-        /* View Transitions */
-        .view-section {
-            display: none;
-            width: 100%;
-            max-width: 100%;
-        }
-        .view-section.active-view {
-            display: block;
+        /* Mobile adjustment for toggle */
+        @media (max-width: 768px) {
+            .merch-toggle-container {
+                top: auto;
+                bottom: 20px;
+                right: 20px; /* Floating bottom right on mobile */
+                padding: 6px 14px;
+            }
         }
     </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen overflow-x-hidden">
+<body class="antialiased flex flex-col min-h-screen overflow-x-hidden transition-colors duration-500">
 
     <!-- Interactive Canvas Background -->
     <canvas id="neural-canvas"></canvas>
@@ -209,50 +214,44 @@
                  <span class="mx-8">JOIN OUR COMMUNITY</span>
                  <span class="mx-8">•</span>
                  <span class="mx-8">CLICK TO CONNECT</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">NETWORK WITH INNOVATORS</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">JOIN OUR COMMUNITY</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">CLICK TO CONNECT</span>
              </div>
         </div>
     </a>
 
     <!-- Navigation -->
-    <nav class="fixed w-full z-50 top-8 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 transition-all duration-300" id="navbar">
+    <nav class="fixed w-full z-50 top-8 theme-bg-nav backdrop-blur-md border-b border-slate-800/20 transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer z-50" onclick="navigateTo('home')" ondblclick="triggerNavScan()">
-                    <!-- Added filter classes to make the yellow logo appear white -->
-                    <img src="EJ Logo Text Yellow.png" alt="Eject Solutions" class="h-12 w-auto object-contain brightness-0 invert select-none">
+                    <!-- Auto-inverting Logo based on Theme Variable -->
+                    <img src="EJ Logo Text Yellow.png" alt="Eject Solutions" class="h-12 w-auto object-contain theme-logo select-none">
                 </div>
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-8">
-                        <button onclick="navigateTo('home')" class="hover:text-violet-400 transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Home</button>
-                        <button onclick="navigateTo('services')" class="hover:text-violet-400 transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Services</button>
-                        <button onclick="navigateTo('contact')" class="hover:text-violet-400 transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Contact</button>
-                        <a href="https://wa.me/+919550194749" target="_blank" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-violet-900/20 flex items-center gap-2">
+                        <button onclick="navigateTo('home')" class="theme-text-main hover:text-[var(--primary)] transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Home</button>
+                        <button onclick="navigateTo('services')" class="theme-text-main hover:text-[var(--primary)] transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Services</button>
+                        <button onclick="navigateTo('contact')" class="theme-text-main hover:text-[var(--primary)] transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Contact</button>
+                        <a href="https://wa.me/+919550194749" target="_blank" class="bg-[var(--primary)] hover:opacity-90 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-violet-900/20 flex items-center gap-2">
                             For immediate enquiries <i data-lucide="message-circle" class="w-4 h-4"></i>
                         </a>
                     </div>
                 </div>
                 <!-- Mobile menu button -->
                 <div class="md:hidden z-50">
-                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none p-2">
+                    <button id="mobile-menu-btn" class="theme-text-main hover:opacity-75 focus:outline-none p-2">
                         <i data-lucide="menu" class="h-6 w-6"></i>
                     </button>
                 </div>
             </div>
         </div>
         <!-- Mobile Menu -->
-        <div class="hidden md:hidden bg-slate-900 border-b border-slate-800 absolute top-20 left-0 w-full shadow-2xl" id="mobile-menu">
+        <div class="hidden md:hidden theme-bg-nav border-b border-slate-800/20 absolute top-20 left-0 w-full shadow-2xl" id="mobile-menu">
             <div class="px-4 pt-4 pb-6 space-y-2">
-                <button onclick="navigateTo('home')" class="block w-full text-left hover:bg-slate-800 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-violet-500 transition-all">Home</button>
-                <button onclick="navigateTo('services')" class="block w-full text-left hover:bg-slate-800 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-violet-500 transition-all">Services</button>
-                <button onclick="navigateTo('contact')" class="block w-full text-left hover:bg-slate-800 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-violet-500 transition-all">Contact</button>
-                <div class="pt-4 mt-2 border-t border-slate-800">
-                     <a href="https://wa.me/+919550194749" target="_blank" class="block w-full bg-violet-600 text-white text-center py-4 rounded-lg text-lg font-bold shadow-lg flex justify-center items-center gap-2">
+                <button onclick="navigateTo('home')" class="block w-full text-left theme-text-main hover:bg-black/10 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-[var(--primary)] transition-all">Home</button>
+                <button onclick="navigateTo('services')" class="block w-full text-left theme-text-main hover:bg-black/10 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-[var(--primary)] transition-all">Services</button>
+                <button onclick="navigateTo('contact')" class="block w-full text-left theme-text-main hover:bg-black/10 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-[var(--primary)] transition-all">Contact</button>
+                <div class="pt-4 mt-2 border-t border-slate-800/20">
+                     <a href="https://wa.me/+919550194749" target="_blank" class="block w-full bg-[var(--primary)] text-white text-center py-4 rounded-lg text-lg font-bold shadow-lg flex justify-center items-center gap-2">
                         For immediate enquiries <i data-lucide="message-circle" class="w-5 h-5"></i>
                      </a>
                 </div>
@@ -260,39 +259,49 @@
         </div>
     </nav>
 
+    <!-- MERCH TOGGLE BUTTON (Glassmorphism Region) -->
+    <div class="merch-toggle-container fade-in">
+        <span class="hidden md:block text-xs font-bold uppercase tracking-wider theme-text-muted select-none" id="merch-label">Switch to Merch Mode</span>
+        <button onclick="toggleMerchMode()" id="merch-btn" class="relative group bg-[var(--card-bg)] border border-[var(--primary)] p-1 pr-4 rounded-full shadow-lg flex items-center gap-2 transition-all hover:scale-105 overflow-hidden">
+            <div class="bg-[var(--primary)] text-white p-2 rounded-full">
+                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+            </div>
+            <span class="text-sm font-bold theme-text-main select-none" id="merch-btn-text">Shop Merch</span>
+        </button>
+    </div>
+
     <!-- Main Content Area -->
-    <main class="flex-grow pt-28 w-full overflow-x-hidden relative">
+    <main class="flex-grow pt-28 w-full overflow-x-hidden relative transition-all duration-500">
         
         <!-- Floating Background Elements (Looping) -->
         <div class="floating-blob blob-1"></div>
         <div class="floating-blob blob-2"></div>
         <div class="floating-blob blob-3"></div>
 
-        <!-- VIEW: HOME -->
+        <!-- VIEW: HOME (Tech Mode) -->
         <div id="view-home" class="view-section active-view">
             <!-- Hero Section -->
             <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden w-full">
-                
                 <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-12">
                     <div class="reveal">
                         <!-- Status Badge -->
-                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/80 border border-slate-700 mb-8 backdrop-blur-md">
-                            <span class="flex h-2 w-2 rounded-full bg-fuchsia-400 animate-ping"></span>
-                            <span class="text-xs sm:text-sm font-medium text-fuchsia-400">System Online v3.0</span>
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full theme-bg-card border border-[var(--accent)] mb-8 backdrop-blur-md">
+                            <span class="flex h-2 w-2 rounded-full bg-[var(--accent)] animate-ping"></span>
+                            <span class="text-xs sm:text-sm font-medium" style="color: var(--accent);">System Online v3.0</span>
                         </div>
                         
-                        <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight break-words">
+                        <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight break-words theme-text-main">
                             Deploy Your Vision with <br>
                             <span class="text-gradient">Precision & Speed</span>
                         </h1>
-                        <p class="text-base sm:text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 font-light px-2">
+                        <p class="text-base sm:text-lg md:text-xl theme-text-muted max-w-2xl mx-auto mb-10 font-light px-2">
                             Eject Solutions delivers high-performance software architecture, cybersecurity auditing, and next-gen digital transformation strategies.
                         </p>
                         <div class="flex flex-col sm:flex-row justify-center gap-4 px-4 sm:px-0">
-                            <a href="https://wa.me/+919550194749" target="_blank" class="w-full sm:w-auto btn-glow bg-violet-600 text-white px-8 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-2">
+                            <a href="https://wa.me/+919550194749" target="_blank" class="w-full sm:w-auto btn-glow bg-[var(--primary)] text-white px-8 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-2">
                                 For immediate enquiries <i data-lucide="message-circle" class="w-5 h-5"></i>
                             </a>
-                            <button onclick="navigateTo('services')" class="w-full sm:w-auto bg-slate-800/80 hover:bg-slate-700 text-white px-8 py-4 rounded-lg font-semibold text-lg border border-slate-700 transition-colors backdrop-blur-sm">
+                            <button onclick="navigateTo('services')" class="w-full sm:w-auto theme-bg-card hover:opacity-90 theme-text-main px-8 py-4 rounded-lg font-semibold text-lg border border-slate-700/20 transition-colors backdrop-blur-sm">
                                 Explore Modules
                             </button>
                         </div>
@@ -301,17 +310,16 @@
             </section>
 
             <!-- Updates Scrolling Banner -->
-            <section class="py-4 bg-slate-800/90 backdrop-blur border-y border-slate-700 relative z-20 w-full overflow-hidden">
+            <section class="py-4 theme-bg-nav backdrop-blur border-y border-slate-700/20 relative z-20 w-full overflow-hidden">
                 <div class="max-w-7xl mx-auto flex items-center overflow-hidden">
-                    <div class="bg-violet-600 text-white px-3 py-1 text-[10px] sm:text-xs font-bold rounded mr-2 sm:mr-4 z-10 shrink-0 uppercase tracking-wider ml-4">
+                    <div class="bg-[var(--primary)] text-white px-3 py-1 text-[10px] sm:text-xs font-bold rounded mr-2 sm:mr-4 z-10 shrink-0 uppercase tracking-wider ml-4">
                         Updates
                     </div>
                     <div class="marquee-container w-full mask-gradient">
-                        <div class="marquee-content text-sm text-slate-300 font-medium">
-                            <span class="mx-4 sm:mx-8">• <span class="text-white">New Service:</span> Cloud Infrastructure Migration now available with 0% downtime guarantee</span>
-                            <span class="mx-4 sm:mx-8">• <span class="text-white">Award:</span> "Top Tech Innovator 2025" by TechWorld Magazine</span>
-                            <span class="mx-4 sm:mx-8">• <span class="text-white">Client Success:</span> Helped FinTech Corp reduce latency by 45%</span>
-                             <span class="mx-4 sm:mx-8">• <span class="text-white">New Service:</span> Cloud Infrastructure Migration now available with 0% downtime guarantee</span>
+                        <div class="marquee-content text-sm theme-text-muted font-medium">
+                            <span class="mx-4 sm:mx-8">• <span class="theme-text-main">New Service:</span> Cloud Infrastructure Migration now available</span>
+                            <span class="mx-4 sm:mx-8">• <span class="theme-text-main">Award:</span> "Top Tech Innovator 2025"</span>
+                            <span class="mx-4 sm:mx-8">• <span class="theme-text-main">Client Success:</span> Latency reduced by 45%</span>
                         </div>
                     </div>
                 </div>
@@ -321,69 +329,141 @@
             <section class="py-16 sm:py-24 relative w-full">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="text-center mb-12 sm:mb-16 reveal">
-                        <h2 class="text-3xl md:text-4xl font-bold mb-4">Core Modules</h2>
-                        <div class="h-1 w-20 bg-violet-600 mx-auto rounded-full"></div>
+                        <h2 class="text-3xl md:text-4xl font-bold mb-4 theme-text-main">Core Modules</h2>
+                        <div class="h-1 w-20 bg-[var(--primary)] mx-auto rounded-full"></div>
                     </div>
-                    <!-- Added tilt-card class to items -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-500/10 reveal stagger-1">
-                            <div class="w-14 h-14 bg-blue-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <i data-lucide="code-2" class="w-7 h-7 text-blue-400"></i>
+                        <!-- Preview Cards with Theme Classes -->
+                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl hover:shadow-[var(--primary)]/10 reveal stagger-1">
+                            <div class="w-14 h-14 bg-blue-900/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <i data-lucide="code-2" class="w-7 h-7 text-[var(--primary)]"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-3 group-hover:text-violet-400 transition-colors">Custom Development</h3>
-                            <p class="text-slate-400 text-sm">Bespoke software tailored to your operational needs.</p>
-                            <span class="inline-flex items-center mt-4 text-sm font-semibold text-violet-500 hover:text-violet-400">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
+                            <h3 class="text-xl font-bold mb-3 theme-text-main">Custom Development</h3>
+                            <p class="theme-text-muted text-sm">Bespoke software tailored to your operational needs.</p>
+                            <span class="inline-flex items-center mt-4 text-sm font-semibold text-[var(--primary)] group-hover:underline">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
                         </div>
 
-                         <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 reveal stagger-2">
-                            <div class="w-14 h-14 bg-emerald-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
+                         <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--accent)] hover:shadow-xl hover:shadow-[var(--accent)]/10 reveal stagger-2">
+                            <div class="w-14 h-14 bg-emerald-900/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <i data-lucide="shield-check" class="w-7 h-7 text-emerald-500"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-3 group-hover:text-emerald-400 transition-colors">Cyber Security</h3>
-                            <p class="text-slate-400 text-sm">End-to-end vulnerability assessment and penetration testing.</p>
-                             <span class="inline-flex items-center mt-4 text-sm font-semibold text-emerald-500 hover:text-emerald-400">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
+                            <h3 class="text-xl font-bold mb-3 theme-text-main">Cyber Security</h3>
+                            <p class="theme-text-muted text-sm">End-to-end vulnerability assessment.</p>
+                             <span class="inline-flex items-center mt-4 text-sm font-semibold text-emerald-500 group-hover:underline">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
                         </div>
 
-                        <div onclick="openServiceDetail('ai-integ')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-pink-500/50 hover:shadow-2xl hover:shadow-pink-500/10 reveal stagger-3">
-                            <div class="w-14 h-14 bg-pink-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <i data-lucide="cpu" class="w-7 h-7 text-pink-400"></i>
+                        <div onclick="openServiceDetail('ai-integ')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl hover:shadow-[var(--primary)]/10 reveal stagger-3">
+                            <div class="w-14 h-14 bg-pink-900/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <i data-lucide="cpu" class="w-7 h-7 text-pink-500"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-3 group-hover:text-pink-400 transition-colors">AI Integration</h3>
-                            <p class="text-slate-400 text-sm">Integrate Machine Learning models and Generative AI.</p>
-                             <span class="inline-flex items-center mt-4 text-sm font-semibold text-pink-500 hover:text-pink-400">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
+                            <h3 class="text-xl font-bold mb-3 theme-text-main">AI Integration</h3>
+                            <p class="theme-text-muted text-sm">Integrate Machine Learning models.</p>
+                             <span class="inline-flex items-center mt-4 text-sm font-semibold text-pink-500 group-hover:underline">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
                         </div>
                     </div>
                     <div class="mt-12 text-center">
-                         <button onclick="navigateTo('services')" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors border-b border-violet-500 pb-1 p-2">View All Services <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                         <button onclick="navigateTo('services')" class="inline-flex items-center gap-2 theme-text-muted hover:text-[var(--primary)] transition-colors border-b border-[var(--primary)] pb-1 p-2">View All Services <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
                     </div>
                 </div>
             </section>
 
              <!-- About Section -->
-            <section class="py-16 sm:py-24 bg-slate-900/50 relative overflow-hidden w-full">
+            <section class="py-16 sm:py-24 relative overflow-hidden w-full">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 items-center">
                         <div class="reveal">
-                            <h2 class="text-3xl md:text-4xl font-bold mb-6">Built for the <span class="text-violet-500">Bold.</span></h2>
-                            <p class="text-slate-400 text-lg mb-6 leading-relaxed">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-6 theme-text-main">Built for the <span class="text-[var(--primary)]">Bold.</span></h2>
+                            <p class="theme-text-muted text-lg mb-6 leading-relaxed">
                                 At Eject Solutions, we don't just write code; we architect the future. Founded in 2020, we identified a gap between traditional IT consultancy and agile, modern development needs.
                             </p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div class="border-l-4 border-violet-500 pl-4 bg-slate-800/60 p-2 rounded-r-lg backdrop-blur-sm">
-                                    <h4 class="text-3xl font-bold text-white">500+</h4>
-                                    <p class="text-sm text-slate-500">Projects Deployed</p>
+                                <div class="border-l-4 border-[var(--primary)] pl-4 theme-bg-card p-2 rounded-r-lg backdrop-blur-sm">
+                                    <h4 class="text-3xl font-bold theme-text-main">500+</h4>
+                                    <p class="text-sm theme-text-muted">Projects Deployed</p>
                                 </div>
-                                <div class="border-l-4 border-fuchsia-500 pl-4 bg-slate-800/60 p-2 rounded-r-lg backdrop-blur-sm">
-                                    <h4 class="text-3xl font-bold text-white">99.9%</h4>
-                                    <p class="text-sm text-slate-500">Uptime Guaranteed</p>
+                                <div class="border-l-4 border-[var(--accent)] pl-4 theme-bg-card p-2 rounded-r-lg backdrop-blur-sm">
+                                    <h4 class="text-3xl font-bold theme-text-main">99.9%</h4>
+                                    <p class="text-sm theme-text-muted">Uptime Guaranteed</p>
                                 </div>
                             </div>
                         </div>
                         <div class="relative reveal stagger-2 hidden sm:block">
-                             <div class="w-full h-64 bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700 flex items-center justify-center shadow-2xl">
-                                <span class="text-slate-600 font-mono text-sm">[ TEAM IMAGE PLACEHOLDER ]</span>
+                             <div class="w-full h-64 theme-bg-card backdrop-blur-sm rounded-xl border border-slate-700/20 flex items-center justify-center shadow-2xl">
+                                <span class="theme-text-muted font-mono text-sm">[ TEAM IMAGE PLACEHOLDER ]</span>
                              </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VIEW: MERCH (Funky Mode) -->
+        <div id="view-merch" class="view-section">
+            <section class="relative min-h-screen py-16">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <!-- Header -->
+                    <div class="text-center mb-16 fade-in">
+                        <span class="inline-block px-4 py-1 rounded-full bg-yellow-300 text-slate-900 font-bold text-sm mb-4 transform -rotate-2">OFFICIAL SWAG STORE</span>
+                        <h1 class="text-5xl md:text-7xl font-black theme-text-main mb-6 drop-shadow-sm">
+                            WEAR THE <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500">VIBE.</span>
+                        </h1>
+                        <p class="text-xl theme-text-muted max-w-2xl mx-auto">
+                            Join the community. Rep the code. Limited edition drops for the builders, dreamers, and caffeine consumers.
+                        </p>
+                    </div>
+
+                    <!-- Merch Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        
+                        <!-- Item 1 -->
+                        <div class="merch-card group relative bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-transparent hover:border-pink-500 cursor-pointer tilt-card">
+                            <div class="absolute -top-3 -right-3 bg-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10 merch-badge">BESTSELLER</div>
+                            <div class="aspect-square bg-slate-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                                <span class="text-6xl">👕</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">"Code Blooded" Tee</h3>
+                            <p class="text-slate-500 text-sm mb-4">100% Cotton. 0% Bugs.</p>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xl text-pink-600">$29.99</span>
+                                <button class="bg-slate-900 text-white px-3 py-1 rounded-lg text-sm font-bold hover:bg-slate-700">Add to Cart</button>
+                            </div>
+                        </div>
+
+                        <!-- Item 2 -->
+                        <div class="merch-card group relative bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-transparent hover:border-cyan-500 cursor-pointer tilt-card">
+                            <div class="absolute -top-3 -right-3 bg-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10 merch-badge">NEW DROP</div>
+                            <div class="aspect-square bg-slate-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                                <span class="text-6xl">📅</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">2026 Dev Calendar</h3>
+                            <p class="text-slate-500 text-sm mb-4">A meme for every sprint.</p>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xl text-cyan-600">$19.99</span>
+                                <button class="bg-slate-900 text-white px-3 py-1 rounded-lg text-sm font-bold hover:bg-slate-700">Add to Cart</button>
+                            </div>
+                        </div>
+
+                         <!-- Item 3 -->
+                         <div class="merch-card group relative bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-transparent hover:border-yellow-500 cursor-pointer tilt-card">
+                            <div class="aspect-square bg-slate-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                                <span class="text-6xl">☕</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">404 Mug</h3>
+                            <p class="text-slate-500 text-sm mb-4">Coffee not found.</p>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xl text-yellow-600">$14.99</span>
+                                <button class="bg-slate-900 text-white px-3 py-1 rounded-lg text-sm font-bold hover:bg-slate-700">Add to Cart</button>
+                            </div>
+                        </div>
+
+                        <!-- Community Card -->
+                        <div class="merch-card group relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 text-white tilt-card flex flex-col justify-center items-center text-center">
+                            <i data-lucide="users" class="w-12 h-12 mb-4 text-white/90"></i>
+                            <h3 class="text-xl font-bold mb-2">Join the Squad</h3>
+                            <p class="text-white/80 text-sm mb-6">Get exclusive discounts and early access to drops.</p>
+                            <button class="bg-white text-indigo-600 w-full py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors">Join Community</button>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -394,124 +474,77 @@
             <section class="py-12 w-full">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="mb-8">
-                        <button onclick="navigateTo('home')" class="text-slate-400 hover:text-white flex items-center gap-2 mb-4 text-sm p-2 -ml-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Home</button>
-                        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 break-words">Our Complete <span class="text-violet-500">Service Suite</span></h1>
-                        <p class="text-lg sm:text-xl text-slate-400 max-w-3xl">Explore our catalog of digital solutions designed to elevate your business infrastructure.</p>
+                        <button onclick="navigateTo('home')" class="theme-text-muted hover:text-[var(--primary)] flex items-center gap-2 mb-4 text-sm p-2 -ml-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Home</button>
+                        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 break-words theme-text-main">Our Complete <span class="text-[var(--primary)]">Service Suite</span></h1>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 fade-in">
-                        
-                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-blue-500/50 hover:shadow-xl active:bg-slate-700">
-                            <i data-lucide="code-2" class="w-10 h-10 text-blue-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Custom Development</h3>
-                            <p class="text-slate-400 text-sm mb-4">Scalable Web Apps, APIs, and Enterprise Software using modern stacks.</p>
-                            <span class="text-blue-400 text-sm font-semibold group-hover:underline">View Details</span>
+                        <!-- Custom Dev -->
+                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
+                            <i data-lucide="code-2" class="w-10 h-10 text-[var(--primary)] mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2 theme-text-main">Custom Development</h3>
+                            <p class="theme-text-muted text-sm mb-4">Scalable Web Apps, APIs, and Enterprise Software using modern stacks.</p>
+                            <span class="text-[var(--primary)] text-sm font-semibold group-hover:underline">View Details</span>
                         </div>
-
-                        <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-emerald-500/50 hover:shadow-xl active:bg-slate-700">
+                        <!-- Cyber Sec -->
+                        <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
                             <i data-lucide="shield-check" class="w-10 h-10 text-emerald-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Cyber Security</h3>
-                            <p class="text-slate-400 text-sm mb-4">Vulnerability assessment, penetration testing, and security auditing.</p>
-                            <span class="text-emerald-400 text-sm font-semibold group-hover:underline">View Details</span>
+                            <h3 class="text-xl font-bold mb-2 theme-text-main">Cyber Security</h3>
+                            <p class="theme-text-muted text-sm mb-4">Vulnerability assessment, penetration testing, and security auditing.</p>
+                            <span class="text-emerald-500 text-sm font-semibold group-hover:underline">View Details</span>
                         </div>
-
-                        <div onclick="openServiceDetail('data-ana')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-purple-500/50 hover:shadow-xl active:bg-slate-700">
-                            <i data-lucide="bar-chart-3" class="w-10 h-10 text-purple-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Data Analytics</h3>
-                            <p class="text-slate-400 text-sm mb-4">Real-time dashboards, predictive modeling, and BI reporting.</p>
-                            <span class="text-purple-400 text-sm font-semibold group-hover:underline">View Details</span>
-                        </div>
-
-                        <div onclick="openServiceDetail('mobile-sol')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-orange-500/50 hover:shadow-xl active:bg-slate-700">
-                            <i data-lucide="smartphone" class="w-10 h-10 text-orange-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Mobile Solutions</h3>
-                            <p class="text-slate-400 text-sm mb-4">Native and Cross-platform apps for iOS and Android.</p>
-                            <span class="text-orange-400 text-sm font-semibold group-hover:underline">View Details</span>
-                        </div>
-
-                        <div onclick="openServiceDetail('cloud-arch')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-cyan-500/50 hover:shadow-xl active:bg-slate-700">
-                            <i data-lucide="cloud" class="w-10 h-10 text-cyan-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Cloud Architecture</h3>
-                            <p class="text-slate-400 text-sm mb-4">AWS, Azure, and Google Cloud optimization and migration.</p>
-                            <span class="text-cyan-400 text-sm font-semibold group-hover:underline">View Details</span>
-                        </div>
-
-                        <div onclick="openServiceDetail('ai-integ')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-pink-500/50 hover:shadow-xl active:bg-slate-700">
-                            <i data-lucide="cpu" class="w-10 h-10 text-pink-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">AI Integration</h3>
-                            <p class="text-slate-400 text-sm mb-4">Machine Learning models and Generative AI workflows.</p>
-                            <span class="text-pink-400 text-sm font-semibold group-hover:underline">View Details</span>
-                        </div>
-                        
-                        <div onclick="openServiceDetail('hr-sol')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-yellow-500/50 hover:shadow-xl active:bg-slate-700">
+                        <!-- HR Solutions -->
+                        <div onclick="openServiceDetail('hr-sol')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
                             <i data-lucide="users" class="w-10 h-10 text-yellow-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">HR Solutions</h3>
-                            <p class="text-slate-400 text-sm mb-4">Digital HR tools, automated payroll systems, and talent acquisition platforms.</p>
-                            <span class="text-yellow-400 text-sm font-semibold group-hover:underline">View Details</span>
+                            <h3 class="text-xl font-bold mb-2 theme-text-main">HR Solutions</h3>
+                            <p class="theme-text-muted text-sm mb-4">Digital HR tools, automated payroll systems, and talent acquisition platforms.</p>
+                            <span class="text-yellow-500 text-sm font-semibold group-hover:underline">View Details</span>
                         </div>
-
-                        <div onclick="openServiceDetail('content-mkt')" class="tilt-card cursor-pointer group bg-slate-800/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700 hover:border-rose-500/50 hover:shadow-xl active:bg-slate-700">
+                         <!-- Content Marketing -->
+                         <div onclick="openServiceDetail('content-mkt')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
                             <i data-lucide="megaphone" class="w-10 h-10 text-rose-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Content Marketing</h3>
-                            <p class="text-slate-400 text-sm mb-4">Data-driven content strategies, SEO optimization, and social media campaigns.</p>
-                            <span class="text-rose-400 text-sm font-semibold group-hover:underline">View Details</span>
+                            <h3 class="text-xl font-bold mb-2 theme-text-main">Content Marketing</h3>
+                            <p class="theme-text-muted text-sm mb-4">Data-driven content strategies, SEO optimization, and social media campaigns.</p>
+                            <span class="text-rose-500 text-sm font-semibold group-hover:underline">View Details</span>
                         </div>
                     </div>
                 </div>
             </section>
         </div>
 
-        <!-- VIEW: SERVICE DETAIL (Dynamic) -->
+        <!-- VIEW: SERVICE DETAIL -->
         <div id="view-service-detail" class="view-section">
             <section class="py-12 relative min-h-[80vh] w-full">
                  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-                    <div class="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                        <button onclick="navigateTo('home')" class="hover:text-white p-1">Home</button>
+                    <div class="flex flex-wrap items-center gap-2 text-sm theme-text-muted">
+                        <button onclick="navigateTo('home')" class="hover:text-[var(--primary)] p-1">Home</button>
                         <span>/</span>
-                        <button onclick="navigateTo('services')" class="hover:text-white p-1">Services</button>
+                        <button onclick="navigateTo('services')" class="hover:text-[var(--primary)] p-1">Services</button>
                         <span>/</span>
-                        <span id="detail-breadcrumb-name" class="text-violet-500 truncate max-w-[150px]">Current</span>
+                        <span id="detail-breadcrumb-name" class="text-[var(--primary)] truncate max-w-[150px]">Current</span>
                     </div>
                 </div>
 
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
                         <div class="lg:col-span-2 order-2 lg:order-1">
-                            <div id="detail-icon-container" class="inline-block p-4 rounded-xl bg-slate-800/80 mb-6 border border-slate-700 backdrop-blur-sm">
-                                <!-- Icon Injected Here -->
-                            </div>
-                            <h1 id="detail-title" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-white break-words">Service Title</h1>
-                            <p id="detail-description" class="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8">
-                                Service description placeholder text.
-                            </p>
+                            <div id="detail-icon-container" class="inline-block p-4 rounded-xl theme-bg-card mb-6 border border-slate-700/20 backdrop-blur-sm"></div>
+                            <h1 id="detail-title" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 theme-text-main break-words">Service Title</h1>
+                            <p id="detail-description" class="text-lg sm:text-xl theme-text-muted leading-relaxed mb-8">Service description placeholder text.</p>
 
-                            <div class="bg-slate-800/60 rounded-xl p-6 border border-slate-700 mb-8 backdrop-blur-sm">
-                                <h3 class="text-lg font-bold text-white mb-4">Key Features</h3>
-                                <ul id="detail-features" class="space-y-3">
-                                    <!-- Features injected here -->
-                                </ul>
-                            </div>
-
-                             <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-4 overflow-hidden mb-8 w-full max-w-full">
-                                <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Live Module Updates</div>
-                                <div class="marquee-container w-full">
-                                    <div id="detail-updates" class="marquee-content text-sm text-slate-400 font-mono">
-                                        <!-- Updates injected here -->
-                                    </div>
-                                </div>
+                            <div class="theme-bg-card rounded-xl p-6 border border-slate-700/20 mb-8 backdrop-blur-sm">
+                                <h3 class="text-lg font-bold theme-text-main mb-4">Key Features</h3>
+                                <ul id="detail-features" class="space-y-3"></ul>
                             </div>
                         </div>
 
                         <div class="lg:col-span-1 order-1 lg:order-2 mb-8 lg:mb-0">
-                            <div class="bg-slate-800/80 rounded-2xl p-6 sm:p-8 border border-slate-700 lg:sticky lg:top-24 backdrop-blur-sm">
-                                <h3 class="text-2xl font-bold mb-4">Ready to Deploy?</h3>
-                                <p class="text-slate-400 mb-6">Schedule a consultation with our experts to discuss your specific requirements for this module.</p>
-                                <button onclick="navigateTo('contact')" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-4 rounded-lg transition-all shadow-lg shadow-violet-900/50 mb-4 active:transform active:scale-95">
+                            <div class="theme-bg-card rounded-2xl p-6 sm:p-8 border border-slate-700/20 lg:sticky lg:top-24 backdrop-blur-sm">
+                                <h3 class="text-2xl font-bold mb-4 theme-text-main">Ready to Deploy?</h3>
+                                <p class="theme-text-muted mb-6">Schedule a consultation with our experts.</p>
+                                <button onclick="navigateTo('contact')" class="w-full bg-[var(--primary)] hover:opacity-90 text-white font-bold py-4 rounded-lg transition-all shadow-lg mb-4 active:transform active:scale-95">
                                     Request Consultation
                                 </button>
-                                <div class="text-center">
-                                    <p class="text-xs text-slate-500">Typical response time: < 2 hours</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -523,43 +556,36 @@
         <div id="view-contact" class="view-section">
             <section class="py-12 min-h-[80vh] flex flex-col justify-center w-full">
                 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center fade-in">
-                    <button onclick="navigateTo('home')" class="text-slate-400 hover:text-white flex items-center gap-2 mb-8 mx-auto text-sm p-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Return to Base</button>
+                    <button onclick="navigateTo('home')" class="theme-text-muted hover:text-[var(--primary)] flex items-center gap-2 mb-8 mx-auto text-sm p-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Return to Base</button>
                     
-                    <h2 class="text-3xl sm:text-4xl font-bold mb-6">Initialize Contact Protocol</h2>
-                    <p class="text-lg sm:text-xl text-slate-300 mb-6 px-2">
-                        Fill out the parameters below to open a secure channel with our team.
-                    </p>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-6 theme-text-main">Initialize Contact Protocol</h2>
+                    <p class="text-lg sm:text-xl theme-text-muted mb-6 px-2">Fill out the parameters below.</p>
 
                     <div class="mb-10 flex justify-center">
-                        <a href="https://wa.me/+919550194749" target="_blank" class="bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-lg shadow-violet-900/20 flex items-center gap-2 transform hover:scale-105">
+                        <a href="https://wa.me/+919550194749" target="_blank" class="bg-[var(--primary)] hover:opacity-90 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-lg flex items-center gap-2 transform hover:scale-105">
                             <i data-lucide="message-circle" class="w-5 h-5"></i> Click For immediate enquiries (WhatsApp)
                         </a>
                     </div>
                     
-                    <form id="contactForm" action="https://formspree.io/f/xgovkwlw" method="POST" class="bg-slate-800/80 p-6 sm:p-8 rounded-2xl shadow-2xl border border-slate-700 max-w-lg mx-auto text-left w-full backdrop-blur-sm">
+                    <form id="contactForm" action="https://formspree.io/f/xgovkwlw" method="POST" class="theme-bg-card p-6 sm:p-8 rounded-2xl shadow-2xl border border-slate-700/20 max-w-lg mx-auto text-left w-full backdrop-blur-sm">
                         <div class="mb-6">
-                            <label for="email" class="block text-sm font-medium text-slate-400 mb-2">Email Address</label>
-                            <input type="email" name="email" id="email" required class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" placeholder="you@company.com">
+                            <label for="email" class="block text-sm font-medium theme-text-muted mb-2">Email Address</label>
+                            <input type="email" name="email" id="email" required class="w-full bg-slate-900/5 border border-slate-600/30 rounded-lg px-4 py-3 theme-text-main focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors" placeholder="you@company.com">
                         </div>
                         <div class="mb-6">
-                            <label for="service-select" class="block text-sm font-medium text-slate-400 mb-2">Interest Module</label>
-                            <select id="service-select" name="service" class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors">
+                            <label for="service-select" class="block text-sm font-medium theme-text-muted mb-2">Interest Module</label>
+                            <select id="service-select" name="service" class="w-full bg-slate-900/5 border border-slate-600/30 rounded-lg px-4 py-3 theme-text-main focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors">
                                 <option>General Inquiry</option>
                                 <option>Custom Development</option>
-                                <option>Cyber Security</option>
-                                <option>Data Analytics</option>
-                                <option>Mobile Solutions</option>
-                                <option>Cloud Architecture</option>
-                                <option>AI Integration</option>
                                 <option>HR Solutions</option>
                                 <option>Content Marketing</option>
                             </select>
                         </div>
                         <div class="mb-6">
-                            <label for="message" class="block text-sm font-medium text-slate-400 mb-2">Message</label>
-                            <textarea id="message" name="message" rows="4" required class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" placeholder="Project specs..."></textarea>
+                            <label for="message" class="block text-sm font-medium theme-text-muted mb-2">Message</label>
+                            <textarea id="message" name="message" rows="4" required class="w-full bg-slate-900/5 border border-slate-600/30 rounded-lg px-4 py-3 theme-text-main focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors" placeholder="Project specs..."></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 shadow-lg shadow-violet-900/50 flex justify-center items-center gap-2 active:scale-95">
+                        <button type="submit" class="w-full bg-[var(--primary)] hover:opacity-90 text-white font-bold py-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 shadow-lg flex justify-center items-center gap-2 active:scale-95">
                             Send Transmission <i data-lucide="send" class="w-4 h-4"></i>
                         </button>
                     </form>
@@ -575,27 +601,15 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-12">
                 <div class="col-span-1 md:col-span-1">
                     <div class="flex items-center gap-2 mb-4">
-                        <!-- Added filter classes to make the yellow logo appear white -->
                         <img src="EJ Logo Text Yellow.png" alt="Eject Solutions" class="h-10 w-auto object-contain brightness-0 invert">
                     </div>
-                    <p class="text-slate-500 text-sm">
-                        Innovating the digital landscape one line of code at a time.
-                    </p>
+                    <p class="text-slate-500 text-sm">Innovating the digital landscape one line of code at a time.</p>
                 </div>
-                <!-- Links updated to use navigateTo -->
                 <div>
                     <h4 class="font-bold mb-4 text-white">Company</h4>
                     <ul class="space-y-3 text-sm text-slate-400">
-                        <li><button onclick="navigateTo('home')" class="hover:text-violet-400 transition-colors text-left py-1">About Us</button></li>
-                        <li><button onclick="navigateTo('services')" class="hover:text-violet-400 transition-colors text-left py-1">Services</button></li>
-                        <li><a href="#" class="hover:text-violet-400 transition-colors block py-1">Careers</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4 text-white">Resources</h4>
-                    <ul class="space-y-3 text-sm text-slate-400">
-                        <li><a href="#" class="hover:text-violet-400 transition-colors block py-1">Blog</a></li>
-                        <li><a href="#" class="hover:text-violet-400 transition-colors block py-1">Support</a></li>
+                        <li><button onclick="navigateTo('home')" class="hover:text-white transition-colors text-left py-1">About Us</button></li>
+                        <li><button onclick="navigateTo('services')" class="hover:text-white transition-colors text-left py-1">Services</button></li>
                     </ul>
                 </div>
                 <div>
@@ -784,55 +798,6 @@
                 ],
                 updates: 'Threat Level: Low • Firewall definitions updated 2 mins ago • New zero-day vulnerability patch applied to all client servers.'
             },
-            'data-ana': {
-                title: 'Data Analytics',
-                description: 'Stop guessing and start knowing. We turn your data lakes into actionable intelligence streams using advanced ETL pipelines and visualization tools like PowerBI, Tableau, and custom D3.js dashboards.',
-                iconName: 'bar-chart-3',
-                color: 'text-purple-500',
-                features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Real-time Dashboards</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Predictive Modeling</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Big Data Processing</span></li>'
-                ],
-                updates: 'Processing node added to cluster • Weekly reports generated 15% faster • New data source integration: Salesforce API.'
-            },
-            'mobile-sol': {
-                title: 'Mobile Solutions',
-                description: 'Reach your customers wherever they are. We develop native iOS and Android applications, as well as efficient cross-platform solutions using Flutter and React Native.',
-                iconName: 'smartphone',
-                color: 'text-orange-500',
-                features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Native iOS/Android</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Cross-Platform (Flutter)</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Offline Capabilities</span></li>'
-                ],
-                updates: 'iOS 18 compatibility verified • New gesture controls implemented in beta • Push notification server upgraded.'
-            },
-            'cloud-arch': {
-                title: 'Cloud Architecture',
-                description: 'Migrate, optimize, and scale. We are certified experts in AWS, Azure, and GCP, helping you reduce costs while increasing reliability through serverless architectures and containerization (Kubernetes).',
-                iconName: 'cloud',
-                color: 'text-cyan-500',
-                features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Serverless Deployment</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Kubernetes Management</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Cost Optimization Audit</span></li>'
-                ],
-                updates: 'Auto-scaling groups active • Latency reduced by 40ms in EU-West region • Backup protocols verified.'
-            },
-            'ai-integ': {
-                title: 'AI Integration',
-                description: 'Leverage the power of Artificial Intelligence. From integrating LLMs (Large Language Models) for customer support to computer vision for quality control, we bring the cutting edge to your operations.',
-                iconName: 'cpu',
-                color: 'text-pink-500',
-                features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>LLM Chatbots</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Predictive Maintenance AI</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Automated Content Generation</span></li>'
-                ],
-                updates: 'Model training complete (Epoch 500) • Inference speed improved by 2x • New voice recognition module live.'
-            },
-             // 7. HR Services
             'hr-sol': {
                 title: 'HR Solutions',
                 description: 'Modernize your workforce management. We implement comprehensive HRIS (Human Resource Information Systems), automated payroll pipelines, and AI-driven talent acquisition tools to streamline your internal operations.',
@@ -845,7 +810,6 @@
                 ],
                 updates: 'Payroll tax engine updated for 2026 • Applicant Tracking System (ATS) v3.0 live • New employee onboarding workflow added.'
             },
-            // 8. Content Marketing
             'content-mkt': {
                 title: 'Content Marketing',
                 description: 'Engage your audience with precision. We combine creative storytelling with rigorous data analytics to deliver SEO-optimized content, social media automation, and conversion-focused copywriting.',
@@ -887,8 +851,7 @@
             iconContainer.innerHTML = `<i data-lucide="${data.iconName}" class="w-10 h-10 ${data.color}"></i>`;
             
             document.getElementById('detail-features').innerHTML = data.features.join('');
-            document.getElementById('detail-updates').innerHTML = `<span>• ${data.updates} • ${data.updates}</span>`; 
-
+            
             lucide.createIcons();
             navigateTo('service-detail');
         }
@@ -915,13 +878,7 @@
         // Navbar Logic
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.classList.add('shadow-lg');
-                navbar.classList.replace('bg-slate-900/80', 'bg-slate-900/95');
-            } else {
-                navbar.classList.remove('shadow-lg');
-                navbar.classList.replace('bg-slate-900/95', 'bg-slate-900/80');
-            }
+            // Placeholder for navbar background scroll logic if needed in future
         });
 
         // Mobile Menu
@@ -934,33 +891,33 @@
         // Trigger Navbar Scan Animation
         function triggerNavScan() {
             const navbar = document.getElementById('navbar');
-            // Remove class if it exists to restart animation
             navbar.classList.remove('scan-active');
-            
-            // Force reflow to allow restart
             void navbar.offsetWidth;
-            
-            // Add class to trigger CSS animation
             navbar.classList.add('scan-active');
-            
-            // Optional: Remove class after animation ends (1.5s)
-            setTimeout(() => {
-                navbar.classList.remove('scan-active');
-            }, 1500);
+            setTimeout(() => { navbar.classList.remove('scan-active'); }, 1500);
         }
 
-        // Form Logic
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            // We do NOT prevent default here because we want the form to submit to Formspree
-            const btn = this.querySelector('button');
-            const originalContent = btn.innerHTML;
+        // Toggle Merch Mode
+        function toggleMerchMode() {
+            const body = document.body;
+            const isFunky = body.getAttribute('data-theme') === 'funky';
+            const merchBtnText = document.getElementById('merch-btn-text');
+            const merchLabel = document.getElementById('merch-label');
             
-            // Visual feedback before the page redirects
-            btn.innerHTML = 'Transmitting...';
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
-            
-            // The form will now submit naturally to the action URL
-        });
+            if (isFunky) {
+                // Switch back to Tech Mode
+                body.removeAttribute('data-theme');
+                merchBtnText.textContent = 'Shop Merch';
+                merchLabel.textContent = 'Switch to Merch Mode';
+                navigateTo('home');
+            } else {
+                // Switch to Funky Merch Mode
+                body.setAttribute('data-theme', 'funky');
+                merchBtnText.textContent = 'Back to Tech';
+                merchLabel.textContent = 'Switch to Tech Mode';
+                navigateTo('merch');
+            }
+        }
     </script>
 </body>
 </html>
