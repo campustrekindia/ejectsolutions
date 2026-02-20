@@ -3,458 +3,600 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eject Solutions | Future-Ready Tech</title>
+    <title>Eject Solutions | Future-Ready Tech & Insights</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Firebase SDKs -->
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- FIREBASE CONFIGURATION & INITIALIZATION ---
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        // Expose to window for UI interaction
-        window.auth = auth;
-        window.db = db;
-        window.appId = appId;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.signOut = signOut;
-
-        // Auth State Listener
-        onAuthStateChanged(auth, (user) => {
-            window.currentUser = user;
-        });
-
-        // Initial Auth (Anonymous fallback or Custom Token)
-        const initAuth = async () => {
-             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-             }
-        };
-        initAuth();
+        import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        const firebaseConfig = {}; 
+        window.auth = {}; 
     </script>
 
     <style>
-        /* --- THEMING SYSTEM --- */
+        /* --- THEMING SYSTEM (LIGHT MODE) --- */
         :root {
-            /* Default: Dark Tech Theme */
-            --bg-main: #0f172a; /* Slate-900 */
-            --bg-card: #1e293b; /* Slate-800 */
-            --bg-nav: rgba(15, 23, 42, 0.8);
-            
-            --text-main: #f8fafc; /* Slate-50 */
-            --text-muted: #94a3b8; /* Slate-400 */
-            
-            --primary: #8b5cf6; /* Violet-500 */
-            --accent: #d946ef;  /* Fuchsia-500 */
-            
-            --logo-filter: brightness(0) invert(1); /* Make logo white */
-            --blob-opacity: 0.4;
-            
-            --toggle-bg: rgba(30, 41, 59, 0.7);
-            --toggle-border: rgba(255, 255, 255, 0.1);
+            --bg-main: #ffffff;
+            --bg-card: #ffffff;
+            --bg-nav: rgba(255, 255, 255, 0.95);
+            --text-main: #000000;
+            --text-muted: #4b5563; /* Gray-600 */
+            --primary: #facc15; /* Yellow-400 */
+            --primary-hover: #eab308; /* Yellow-500 */
+            --accent: #dc2626; /* Red-600 */
+            --border-color: #000000;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
             overflow-x: hidden;
             width: 100%;
-            max-width: 100vw;
             -webkit-overflow-scrolling: touch;
-            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
-        /* Utility classes mapped to variables */
-        .theme-bg-main { background-color: var(--bg-main); }
-        .theme-bg-card { background-color: var(--bg-card); }
+        /* Utility Classes */
         .theme-bg-nav { background-color: var(--bg-nav); }
+        .theme-bg-card { background-color: var(--bg-card); }
         .theme-text-main { color: var(--text-main); }
         .theme-text-muted { color: var(--text-muted); }
         
-        .theme-logo { filter: var(--logo-filter); transition: filter 0.5s ease; }
-
-        /* Canvas Background */
-        #neural-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* Selection Color */
+        /* High Contrast Selection */
         ::selection {
-            background-color: var(--primary);
-            color: white;
+            background: var(--primary);
+            color: black;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-main); }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        /* Background Canvas */
+        #neural-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: 0.6; }
 
-        /* Animation Classes */
+        /* Dropdown Logic */
+        .dropdown-group:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-menu { opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease-in-out; background-color: white; border: 2px solid black; box-shadow: 4px 4px 0px black; }
+
+        /* Animations */
         .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
         .fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .stagger-1 { transition-delay: 100ms; }
-        .stagger-2 { transition-delay: 200ms; }
-        .stagger-3 { transition-delay: 300ms; }
-
-        /* Marquee */
-        .marquee-container { overflow: hidden; white-space: nowrap; position: relative; width: 100%; max-width: 100vw; transform: translateZ(0); }
-        .marquee-content { display: inline-block; animation: marquee 25s linear infinite; will-change: transform; transform: translate3d(0, 0, 0); }
-        .mask-gradient { mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
-        .marquee-content:hover { animation-play-state: paused; }
+        .marquee-container { overflow: hidden; white-space: nowrap; position: relative; width: 100%; }
+        .marquee-content { display: inline-block; animation: marquee 25s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        /* Gradient Text */
-        .text-gradient {
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* News Slider Animation */
+        .news-slider-track {
+            display: flex;
+            gap: 2rem;
+            animation: slideNews 40s linear infinite;
+            width: max-content;
+        }
+        .news-slider-track:hover {
+            animation-play-state: paused;
+        }
+        @keyframes slideNews {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
-        /* Button Hover Glow */
-        .btn-glow { transition: all 0.3s ease; }
-        .btn-glow:hover { box-shadow: 0 0 15px var(--primary); transform: translateY(-2px); }
-
-        /* 3D Tilt Card */
-        .tilt-card { transition: transform 0.1s ease-out, border-color 0.3s; transform-style: preserve-3d; perspective: 1000px; }
-
-        /* Floating Blobs */
-        .floating-blob {
-            position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--blob-opacity); animation: floatLoop 10s infinite ease-in-out; z-index: -2; will-change: transform; transition: opacity 0.5s ease;
+        /* 3D Tilt Card & Brutalist Borders */
+        .tilt-card { 
+            transition: transform 0.1s ease-out; 
+            transform-style: preserve-3d; 
+            perspective: 1000px;
+            border: 2px solid black;
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
         }
-        .blob-1 { background: var(--primary); width: 300px; height: 300px; top: 10%; left: -100px; }
-        .blob-2 { background: var(--accent); width: 250px; height: 250px; bottom: 20%; right: -50px; animation-delay: 2s; }
-        .blob-3 { background: #3b82f6; width: 200px; height: 200px; top: 40%; right: 20%; animation-delay: 4s; }
-        @keyframes floatLoop { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0, 0) scale(1); } }
-
-        /* Nav Scan Animation */
-        .scan-active { position: relative; overflow: hidden; }
-        .scan-active::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
-            transform: skewX(-20deg) translateX(-150%); animation: scanPass 1.5s ease-in-out forwards; pointer-events: none; z-index: 100;
+        .tilt-card:hover {
+            box-shadow: 8px 8px 0px 0px var(--primary);
+            border-color: black;
         }
-        @keyframes scanPass { 0% { transform: skewX(-20deg) translateX(-150%); } 100% { transform: skewX(-20deg) translateX(150%); } }
 
-        /* View Management */
-        .view-section { display: none; width: 100%; max-width: 100%; }
+        /* Knowledge Hub Specific Styles */
+        .blog-filter-btn {
+            background: white;
+            color: black;
+            border: 2px solid black;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            box-shadow: 2px 2px 0px black;
+            transition: all 0.2s;
+        }
+        .blog-filter-btn.active {
+            background: black;
+            color: var(--primary);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--primary);
+        }
+        .blog-filter-btn:hover:not(.active) {
+            background: var(--primary);
+            box-shadow: 3px 3px 0px black;
+            transform: translate(-1px, -1px);
+        }
+
+        .calc-input { 
+            background: #f9fafb; 
+            border: 2px solid black; 
+            color: black; 
+            padding: 8px; 
+            border-radius: 6px; 
+            width: 100px; 
+            font-weight: 600;
+        }
+
+        /* Floating Orbs */
+        .floating-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: floatLoop 15s infinite; z-index: -2; mix-blend-mode: multiply; }
+        .blob-1 { background: var(--primary); width: 400px; height: 400px; top: 10%; left: -100px; }
+        .blob-2 { background: #e5e5e5; width: 350px; height: 350px; bottom: 20%; right: -50px; animation-delay: 2s; }
+        .blob-3 { 
+            background: radial-gradient(circle, rgba(220,38,38,0.8) 0%, rgba(220,38,38,0) 70%); 
+            width: 500px; height: 500px; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%);
+            opacity: 0.25;
+            animation: floatCenter 20s infinite ease-in-out;
+        }
+
+        @keyframes floatLoop { 0% { transform: translate(0, 0); } 50% { transform: translate(30px, -50px); } 100% { transform: translate(0, 0); } }
+        @keyframes floatCenter { 
+            0% { transform: translate(-50%, -50%) scale(1); } 
+            33% { transform: translate(-30%, -60%) scale(1.1); } 
+            66% { transform: translate(-70%, -40%) scale(0.9); } 
+            100% { transform: translate(-50%, -50%) scale(1); } 
+        }
+
+        /* View Switching */
+        .view-section { display: none; }
         .view-section.active-view { display: block; animation: fadeIn 0.4s ease-out; }
 
-        /* Modal Overlay */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
-            z-index: 60; display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        /* Buttons */
+        .btn-primary {
+            background-color: black;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 4px 4px 0px var(--primary);
         }
-        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .btn-primary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--primary);
+            background-color: black;
+            color: var(--primary);
+        }
+        .btn-secondary {
+            background-color: white;
+            color: black;
+            border: 2px solid black;
+            transition: all 0.3s ease;
+            box-shadow: 4px 4px 0px black;
+        }
+        .btn-secondary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px black;
+            background-color: var(--primary);
+        }
 
-        /* Auth Modal */
-        .auth-modal {
-            background: var(--bg-card); width: 90%; max-width: 400px;
-            padding: 2rem; border-radius: 20px; border: 1px solid var(--toggle-border);
-            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        /* Floating Action Button */
+        .fab-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 1.5rem;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
         }
-        .modal-overlay.open .auth-modal { transform: scale(1); }
+        
+        .fab-button {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background-color: var(--primary);
+            color: black;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 2px solid black;
+            box-shadow: 4px 4px 0px black;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-decoration: none;
+        }
+
+        .fab-button:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 6px 6px 0px black;
+            background-color: black;
+            color: white;
+        }
+
+        .fab-label {
+            background-color: black;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .fab-container:hover .fab-label {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .ping-indicator {
+            position: relative;
+            display: flex;
+            height: 0.75rem;
+            width: 0.75rem;
+        }
+
+        /* --- Custom Form Animation Styles --- */
+        .scanline {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(0deg, rgba(0,255,0,0) 0%, rgba(34,197,94,0.1) 50%, rgba(0,255,0,0) 100%);
+            opacity: 0.3;
+            position: absolute;
+            top: -100px;
+            left: 0;
+            animation: scanline 4s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+        @keyframes scanline {
+            0% { top: -100px; }
+            100% { top: 100%; }
+        }
+        
+        .typewriter-line {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 0.5s steps(30, end) forwards;
+            width: 0; /* starts at 0 */
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
     </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen overflow-x-hidden transition-colors duration-500">
+<body class="antialiased flex flex-col min-h-screen">
 
-    <!-- Interactive Canvas Background -->
     <canvas id="neural-canvas"></canvas>
 
-    <!-- Top Scrolling Bar -->
-    <a href="https://wa.me/+919550194749" target="_blank" class="fixed top-0 left-0 w-full h-8 z-[60] bg-gradient-to-r from-violet-800 via-fuchsia-700 to-violet-800 flex items-center overflow-hidden cursor-pointer hover:opacity-95 transition-opacity text-xs font-bold tracking-[0.2em] text-white shadow-md decoration-none">
+    <!-- Top Marquee: Yellow Background, Black Text -->
+    <a href="https://wa.me/+919550194749" target="_blank" class="fixed top-0 left-0 w-full h-9 z-[60] bg-yellow-400 border-b-2 border-black flex items-center overflow-hidden cursor-pointer hover:bg-yellow-300 text-xs font-bold tracking-[0.2em] text-black decoration-none transition-colors">
         <div class="marquee-container w-full">
-             <div class="marquee-content whitespace-nowrap">
-                 <span class="mx-8">✨ JOIN OUR COMMUNITY</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">CLICK TO CONNECT</span>
-                 <span class="mx-8">•</span>
+             <div class="marquee-content whitespace-nowrap font-black">
+                 <span class="mx-8">✨ JOIN OUR COMMUNITY</span><span class="mx-8">•</span>
+                 <span class="mx-8">CLICK TO CONNECT</span><span class="mx-8">•</span>
                  <span class="mx-8">NETWORK WITH INNOVATORS</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">JOIN OUR COMMUNITY</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">CLICK TO CONNECT</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">NETWORK WITH INNOVATORS</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">JOIN OUR COMMUNITY</span>
-                 <span class="mx-8">•</span>
-                 <span class="mx-8">CLICK TO CONNECT</span>
              </div>
         </div>
     </a>
 
-    <!-- Navigation -->
-    <nav class="fixed w-full z-50 top-8 theme-bg-nav backdrop-blur-md border-b border-slate-800/20 transition-all duration-300" id="navbar">
+    <!-- Navbar: White, Black Text -->
+    <nav class="fixed w-full z-50 top-9 theme-bg-nav backdrop-blur-md border-b-2 border-black/5 transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer z-50" onclick="navigateTo('home')" ondblclick="triggerNavScan()">
-                    <!-- Auto-inverting Logo based on Theme Variable -->
-                    <img src="EJ Logo Text Yellow.png" onerror="this.src='https://placehold.co/100x40?text=EJECT'" alt="Eject Solutions" class="h-12 w-auto object-contain theme-logo select-none">
+                <div class="cursor-pointer z-50" onclick="navigateTo('home')">
+                    <!-- Added brightness-0 to force logo to black -->
+                    <img src="EJ Logo Text Yellow.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" alt="Eject Solutions" class="h-12 w-auto object-contain filter brightness-0 select-none">
+                    <span class="hidden font-black text-2xl tracking-tighter">EJECT<span class="text-[var(--primary)]">.</span></span>
                 </div>
+                
                 <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8">
-                        <button onclick="navigateTo('home')" class="theme-text-main hover:text-[var(--primary)] transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Home</button>
-                        <button onclick="navigateTo('services')" class="theme-text-main hover:text-[var(--primary)] transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Services</button>
-                        <button onclick="navigateTo('contact')" class="theme-text-main hover:text-[var(--primary)] transition-colors px-3 py-2 rounded-md text-sm font-medium bg-transparent border-none cursor-pointer">Contact</button>
-                        <a href="https://wa.me/+919550194749" target="_blank" class="bg-[var(--primary)] hover:opacity-90 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-violet-900/20 flex items-center gap-2">
-                            For immediate enquiries <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    <div class="ml-10 flex items-center space-x-6">
+                        <button onclick="navigateTo('home')" class="text-black hover:text-[var(--primary-hover)] transition-colors px-3 py-2 text-sm font-bold uppercase">Home</button>
+                        <button onclick="navigateTo('services')" class="text-black hover:text-[var(--primary-hover)] transition-colors px-3 py-2 text-sm font-bold uppercase">Services</button>
+                        
+                        <div class="relative dropdown-group h-full flex items-center">
+                            <button onclick="navigateTo('knowledge-hub')" class="text-black hover:text-[var(--primary-hover)] transition-colors px-3 py-2 text-sm font-bold uppercase flex items-center gap-1 group">
+                                Knowledge Hub <i data-lucide="chevron-down" class="w-4 h-4 group-hover:rotate-180 transition-transform"></i>
+                            </button>
+                            <div class="dropdown-menu absolute top-14 left-0 w-56 p-2 z-50 rounded-lg">
+                                <button onclick="navigateTo('knowledge-hub'); filterBlog('all')" class="block w-full text-left px-4 py-3 text-sm text-black font-semibold hover:bg-yellow-50 hover:text-yellow-600 rounded-lg transition-colors">All Articles</button>
+                                <div class="h-0.5 bg-gray-100 my-1"></div>
+                                <button onclick="navigateTo('knowledge-hub'); filterBlog('tech')" class="block w-full text-left px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg transition-colors flex items-center gap-2"><i data-lucide="code-2" class="w-4 h-4"></i> Tech & Dev</button>
+                                <button onclick="navigateTo('knowledge-hub'); filterBlog('hr')" class="block w-full text-left px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg transition-colors flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> HR & Staffing</button>
+                                <button onclick="navigateTo('knowledge-hub'); filterBlog('marketing')" class="block w-full text-left px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg transition-colors flex items-center gap-2"><i data-lucide="megaphone" class="w-4 h-4"></i> Digital Marketing</button>
+                            </div>
+                        </div>
+
+                        <button onclick="scrollToContact()" class="text-black hover:text-[var(--primary-hover)] transition-colors px-3 py-2 text-sm font-bold uppercase">Contact</button>
+                        <a href="https://wa.me/+919550194749" target="_blank" class="bg-black hover:bg-gray-800 text-white px-5 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 ml-4">
+                            Enquiries <i data-lucide="message-circle" class="w-4 h-4 text-[var(--primary)]"></i>
                         </a>
                     </div>
                 </div>
-                <!-- Mobile menu button -->
+
                 <div class="md:hidden z-50">
-                    <button id="mobile-menu-btn" class="theme-text-main hover:opacity-75 focus:outline-none p-2">
-                        <i data-lucide="menu" class="h-6 w-6"></i>
-                    </button>
+                    <button id="mobile-menu-btn" class="text-black p-2 focus:outline-none"><i data-lucide="menu" class="h-8 w-8"></i></button>
                 </div>
             </div>
         </div>
-        <!-- Mobile Menu -->
-        <div class="hidden md:hidden theme-bg-nav border-b border-slate-800/20 absolute top-20 left-0 w-full shadow-2xl" id="mobile-menu">
-            <div class="px-4 pt-4 pb-6 space-y-2">
-                <button onclick="navigateTo('home')" class="block w-full text-left theme-text-main hover:bg-black/10 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-[var(--primary)] transition-all">Home</button>
-                <button onclick="navigateTo('services')" class="block w-full text-left theme-text-main hover:bg-black/10 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-[var(--primary)] transition-all">Services</button>
-                <button onclick="navigateTo('contact')" class="block w-full text-left theme-text-main hover:bg-black/10 px-4 py-4 rounded-lg text-lg font-medium border-l-4 border-transparent hover:border-[var(--primary)] transition-all">Contact</button>
-                <div class="pt-4 mt-2 border-t border-slate-800/20">
-                     <a href="https://wa.me/+919550194749" target="_blank" class="block w-full bg-[var(--primary)] text-white text-center py-4 rounded-lg text-lg font-bold shadow-lg flex justify-center items-center gap-2">
-                        For immediate enquiries <i data-lucide="message-circle" class="w-5 h-5"></i>
-                     </a>
+
+        <div class="hidden md:hidden bg-white border-b-2 border-black absolute top-20 left-0 w-full shadow-2xl h-screen" id="mobile-menu">
+            <div class="px-6 pt-8 pb-6 space-y-4">
+                <button onclick="navigateTo('home')" class="block w-full text-left text-black px-4 py-4 rounded-lg text-2xl font-black uppercase hover:bg-yellow-50 border-b border-gray-100">Home</button>
+                <button onclick="navigateTo('services')" class="block w-full text-left text-black px-4 py-4 rounded-lg text-2xl font-black uppercase hover:bg-yellow-50 border-b border-gray-100">Services</button>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <button onclick="navigateTo('knowledge-hub')" class="block w-full text-left text-black mb-4 text-2xl font-black uppercase">Knowledge Hub</button>
+                    <div class="pl-4 space-y-3 border-l-2 border-yellow-400 ml-2">
+                        <button onclick="navigateTo('knowledge-hub'); filterBlog('tech')" class="block text-gray-600 font-medium text-lg">Tech & Dev</button>
+                        <button onclick="navigateTo('knowledge-hub'); filterBlog('hr')" class="block text-gray-600 font-medium text-lg">HR & Staffing</button>
+                        <button onclick="navigateTo('knowledge-hub'); filterBlog('marketing')" class="block text-gray-600 font-medium text-lg">Digital Marketing</button>
+                    </div>
                 </div>
+                <button onclick="scrollToContactMobile()" class="block w-full text-left text-black px-4 py-4 rounded-lg text-2xl font-black uppercase hover:bg-yellow-50">Contact</button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
     <main class="flex-grow pt-28 w-full overflow-x-hidden relative transition-all duration-500">
         
-        <!-- Floating Background Elements (Looping) -->
         <div class="floating-blob blob-1"></div>
         <div class="floating-blob blob-2"></div>
         <div class="floating-blob blob-3"></div>
 
-        <!-- VIEW: HOME (Tech Mode) -->
         <div id="view-home" class="view-section active-view">
-            <!-- Hero Section -->
-            <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden w-full">
-                <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-12">
-                    <div class="reveal">
-                        <!-- Status Badge -->
-                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full theme-bg-card border border-[var(--accent)] mb-8 backdrop-blur-md">
-                            <span class="flex h-2 w-2 rounded-full bg-[var(--accent)] animate-ping"></span>
-                            <span class="text-xs sm:text-sm font-medium" style="color: var(--accent);">System Online v3.0</span>
+            <section class="min-h-[85vh] flex items-center justify-center text-center relative z-10 py-12">
+                <div class="max-w-7xl mx-auto px-4 reveal">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-black mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <span class="flex h-3 w-3 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-xs font-bold text-black uppercase tracking-wider">System Online v3.1</span>
+                    </div>
+                    <h1 class="text-5xl md:text-8xl font-black mb-8 text-black tracking-tight leading-none">
+                        DEPLOY YOUR <br>VISION WITH <br>
+                        <span class="relative inline-block text-[var(--primary)] px-2">
+                            SPEED
+                            <span class="absolute inset-0 bg-black -z-10 transform -rotate-2"></span>
+                        </span>
+                    </h1>
+                    <p class="text-xl text-gray-600 font-medium max-w-2xl mx-auto mb-12 leading-relaxed">High-performance software architecture, cybersecurity auditing, and next-gen digital transformation.</p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-6">
+                        <button onclick="scrollToContact()" class="btn-primary px-8 py-4 rounded-lg font-black text-lg uppercase tracking-wide">Start Project</button>
+                        <button onclick="navigateTo('services')" class="btn-secondary px-8 py-4 rounded-lg font-black text-lg uppercase tracking-wide">Explore Modules</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- News & Updates Sliding Section -->
+            <section class="py-12 bg-black text-white border-y-2 border-black overflow-hidden relative">
+                <div class="absolute inset-0 bg-red-600/10 z-0"></div> <!-- Subtle red tint -->
+                <div class="max-w-7xl mx-auto px-4 relative z-10 mb-8 flex justify-between items-end">
+                    <h2 class="text-2xl font-black uppercase tracking-widest text-yellow-400">Latest Intelligence</h2>
+                    <div class="h-1 w-20 bg-white"></div>
+                </div>
+                
+                <div class="w-full overflow-hidden pb-8">
+                    <div class="news-slider-track">
+                        <!-- News Item 1 -->
+                        <div onclick="navigateTo('knowledge-hub'); filterBlog('ai-tools')" class="w-[350px] flex-shrink-0 bg-white text-black p-6 rounded-lg border-2 border-yellow-400 shadow-[6px_6px_0px_#facc15] hover:translate-y-[-4px] transition-transform cursor-pointer">
+                            <span class="text-xs font-bold bg-black text-white px-2 py-1 rounded mb-3 inline-block">UPDATE</span>
+                            <h3 class="font-bold text-lg mb-2 leading-tight">New AI Architecture Released</h3>
+                            <p class="text-sm text-gray-600">Our team has deployed the new neural engine for faster processing...</p>
+                            <span class="text-xs font-bold mt-4 block uppercase underline decoration-2 decoration-yellow-400">Read Brief</span>
                         </div>
-                        
-                        <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight break-words theme-text-main">
-                            Deploy Your Vision with <br>
-                            <span class="text-gradient">Precision & Speed</span>
-                        </h1>
-                        <p class="text-base sm:text-lg md:text-xl theme-text-muted max-w-2xl mx-auto mb-10 font-light px-2">
-                            Eject Solutions delivers high-performance software architecture, cybersecurity auditing, and next-gen digital transformation strategies.
-                        </p>
-                        <div class="flex flex-col sm:flex-row justify-center gap-4 px-4 sm:px-0">
-                            <a href="https://wa.me/+919550194749" target="_blank" class="w-full sm:w-auto btn-glow bg-[var(--primary)] text-white px-8 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-2">
-                                For immediate enquiries <i data-lucide="message-circle" class="w-5 h-5"></i>
-                            </a>
-                            <button onclick="navigateTo('services')" class="w-full sm:w-auto theme-bg-card hover:opacity-90 theme-text-main px-8 py-4 rounded-lg font-semibold text-lg border border-slate-700/20 transition-colors backdrop-blur-sm">
-                                Explore Modules
-                            </button>
+                         <!-- News Item 2 -->
+                         <div onclick="navigateTo('knowledge-hub'); filterBlog('tech')" class="w-[350px] flex-shrink-0 bg-zinc-900 text-white p-6 rounded-lg border-2 border-gray-700 shadow-[6px_6px_0px_#facc15] hover:translate-y-[-4px] transition-transform cursor-pointer">
+                            <span class="text-xs font-bold bg-red-600 text-white px-2 py-1 rounded mb-3 inline-block">ALERT</span>
+                            <h3 class="font-bold text-lg mb-2 leading-tight">Cyber Security Trends 2026</h3>
+                            <p class="text-sm text-gray-400">Critical vulnerabilities found in legacy systems. See how to patch...</p>
+                            <span class="text-xs font-bold mt-4 block uppercase text-yellow-400">Read Brief</span>
+                        </div>
+                         <!-- News Item 3 -->
+                         <div class="w-[350px] flex-shrink-0 bg-white text-black p-6 rounded-lg border-2 border-black shadow-[6px_6px_0px_#000] hover:translate-y-[-4px] transition-transform">
+                            <span class="text-xs font-bold bg-yellow-400 text-black px-2 py-1 rounded mb-3 inline-block">EVENT</span>
+                            <h3 class="font-bold text-lg mb-2 leading-tight">Open Colabs Hackathon</h3>
+                            <p class="text-sm text-gray-600">Join us this weekend for the annual innovation sprint...</p>
+                            <a href="https://klradio.ejectsolutions.com" target="_blank" class="text-xs font-bold mt-4 block uppercase underline decoration-2 decoration-black">Register Now</a>
+                        </div>
+                        <!-- News Item 4 -->
+                         <div onclick="navigateTo('knowledge-hub'); filterBlog('tech')" class="w-[350px] flex-shrink-0 bg-white text-black p-6 rounded-lg border-2 border-yellow-400 shadow-[6px_6px_0px_#facc15] hover:translate-y-[-4px] transition-transform cursor-pointer">
+                            <span class="text-xs font-bold bg-black text-white px-2 py-1 rounded mb-3 inline-block">TECH</span>
+                            <h3 class="font-bold text-lg mb-2 leading-tight">Serverless Transitions</h3>
+                            <p class="text-sm text-gray-600">Why enterprise clients are moving to serverless infrastructure...</p>
+                            <span class="text-xs font-bold mt-4 block uppercase underline decoration-2 decoration-yellow-400">Read Brief</span>
+                        </div>
+                         <!-- Duplicate items for smooth loop -->
+                         <div onclick="navigateTo('knowledge-hub'); filterBlog('ai-tools')" class="w-[350px] flex-shrink-0 bg-white text-black p-6 rounded-lg border-2 border-yellow-400 shadow-[6px_6px_0px_#facc15] hover:translate-y-[-4px] transition-transform cursor-pointer">
+                            <span class="text-xs font-bold bg-black text-white px-2 py-1 rounded mb-3 inline-block">UPDATE</span>
+                            <h3 class="font-bold text-lg mb-2 leading-tight">New AI Architecture Released</h3>
+                            <p class="text-sm text-gray-600">Our team has deployed the new neural engine for faster processing...</p>
+                            <span class="text-xs font-bold mt-4 block uppercase underline decoration-2 decoration-yellow-400">Read Brief</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Updates Scrolling Banner -->
-            <section class="py-4 theme-bg-nav backdrop-blur border-y border-slate-700/20 relative z-20 w-full overflow-hidden">
-                <div class="max-w-7xl mx-auto flex items-center overflow-hidden">
-                    <div class="bg-[var(--primary)] text-white px-3 py-1 text-[10px] sm:text-xs font-bold rounded mr-2 sm:mr-4 z-10 shrink-0 uppercase tracking-wider ml-4">
-                        Updates
-                    </div>
-                    <div class="marquee-container w-full mask-gradient">
-                        <div class="marquee-content text-sm theme-text-muted font-medium">
-                            <span class="mx-4 sm:mx-8">• <span class="theme-text-main">New Service:</span> Cloud Infrastructure Migration now available</span>
-                            <span class="mx-4 sm:mx-8">• <span class="theme-text-main">Award:</span> "Top Tech Innovator 2025"</span>
-                            <span class="mx-4 sm:mx-8">• <span class="theme-text-main">Client Success:</span> Latency reduced by 45%</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Home: Services Preview -->
-            <section class="py-16 sm:py-24 relative w-full">
+            <section class="py-16 sm:py-24 relative w-full bg-white/80 backdrop-blur-sm">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="text-center mb-12 sm:mb-16 reveal">
-                        <h2 class="text-3xl md:text-4xl font-bold mb-4 theme-text-main">Core Modules</h2>
-                        <div class="h-1 w-20 bg-[var(--primary)] mx-auto rounded-full"></div>
+                    <div class="text-center mb-16 reveal">
+                        <h2 class="text-4xl md:text-5xl font-black mb-4 text-black uppercase">Core Modules</h2>
+                        <div class="h-2 w-24 bg-[var(--primary)] mx-auto"></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                        <!-- Preview Cards with Theme Classes -->
-                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl hover:shadow-[var(--primary)]/10 reveal stagger-1">
-                            <div class="w-14 h-14 bg-blue-900/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <i data-lucide="code-2" class="w-7 h-7 text-[var(--primary)]"></i>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Card 1 -->
+                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group bg-white p-8 rounded-xl reveal stagger-1">
+                            <div class="w-16 h-16 bg-yellow-100 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border-2 border-black">
+                                <i data-lucide="code-2" class="w-8 h-8 text-black"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-3 theme-text-main">Custom Development</h3>
-                            <p class="theme-text-muted text-sm">Bespoke software tailored to your operational needs.</p>
-                            <span class="inline-flex items-center mt-4 text-sm font-semibold text-[var(--primary)] group-hover:underline">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
+                            <h3 class="text-2xl font-black mb-3 text-black">Custom Development</h3>
+                            <p class="text-gray-600 text-sm font-medium">Bespoke software tailored to your operational needs.</p>
+                            <span class="inline-flex items-center mt-6 text-sm font-bold text-black border-b-2 border-yellow-400 group-hover:bg-yellow-400 transition-colors">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
                         </div>
 
-                         <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--accent)] hover:shadow-xl hover:shadow-[var(--accent)]/10 reveal stagger-2">
-                            <div class="w-14 h-14 bg-emerald-900/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <i data-lucide="shield-check" class="w-7 h-7 text-emerald-500"></i>
+                        <!-- Card 2 -->
+                        <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group bg-white p-8 rounded-xl reveal stagger-2">
+                            <div class="w-16 h-16 bg-black rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border-2 border-black">
+                                <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-3 theme-text-main">Cyber Security</h3>
-                            <p class="theme-text-muted text-sm">End-to-end vulnerability assessment.</p>
-                             <span class="inline-flex items-center mt-4 text-sm font-semibold text-emerald-500 group-hover:underline">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
+                            <h3 class="text-2xl font-black mb-3 text-black">Cyber Security</h3>
+                            <p class="text-gray-600 text-sm font-medium">End-to-end vulnerability assessment.</p>
+                             <span class="inline-flex items-center mt-6 text-sm font-bold text-black border-b-2 border-black group-hover:bg-black group-hover:text-white transition-colors">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
                         </div>
 
-                        <div onclick="openServiceDetail('ai-integ')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl hover:shadow-[var(--primary)]/10 reveal stagger-3">
-                            <div class="w-14 h-14 bg-pink-900/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <i data-lucide="cpu" class="w-7 h-7 text-pink-500"></i>
+                        <!-- Card 3 -->
+                        <div onclick="openServiceDetail('ai-integ')" class="tilt-card cursor-pointer group bg-white p-8 rounded-xl reveal stagger-3">
+                            <div class="w-16 h-16 bg-yellow-100 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border-2 border-black">
+                                <i data-lucide="cpu" class="w-8 h-8 text-black"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-3 theme-text-main">AI Integration</h3>
-                            <p class="theme-text-muted text-sm">Integrate Machine Learning models.</p>
-                             <span class="inline-flex items-center mt-4 text-sm font-semibold text-pink-500 group-hover:underline">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
+                            <h3 class="text-2xl font-black mb-3 text-black">AI Integration</h3>
+                            <p class="text-gray-600 text-sm font-medium">Integrate Machine Learning models.</p>
+                             <span class="inline-flex items-center mt-6 text-sm font-bold text-black border-b-2 border-yellow-400 group-hover:bg-yellow-400 transition-colors">View Info <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></span>
                         </div>
-                    </div>
-                    <div class="mt-12 text-center">
-                         <button onclick="navigateTo('services')" class="inline-flex items-center gap-2 theme-text-muted hover:text-[var(--primary)] transition-colors border-b border-[var(--primary)] pb-1 p-2">View All Services <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
                     </div>
                 </div>
             </section>
 
-             <!-- About Section -->
-            <section class="py-16 sm:py-24 relative overflow-hidden w-full">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 items-center">
-                        <div class="reveal">
-                            <h2 class="text-3xl md:text-4xl font-bold mb-6 theme-text-main">Built for the <span class="text-[var(--primary)]">Bold.</span></h2>
-                            <p class="theme-text-muted text-lg mb-6 leading-relaxed">
-                                At Eject Solutions, we don't just write code; we architect the future. Founded in 2020, we identified a gap between traditional IT consultancy and agile, modern development needs.
-                            </p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div class="border-l-4 border-[var(--primary)] pl-4 theme-bg-card p-2 rounded-r-lg backdrop-blur-sm">
-                                    <h4 class="text-3xl font-bold theme-text-main">500+</h4>
-                                    <p class="text-sm theme-text-muted">Projects Deployed</p>
+            <!-- Bottom Contact Section on Home Page -->
+            <section id="home-contact" class="py-16 border-t-2 border-black bg-white relative">
+                 <div class="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-red-600/10 to-transparent pointer-events-none"></div>
+                 <div class="max-w-5xl mx-auto px-4 relative z-10">
+                     <div class="grid md:grid-cols-2 gap-12 items-center">
+                         <div>
+                             <h2 class="text-4xl md:text-5xl font-black mb-6 text-black uppercase">Start Your<br>Transmission</h2>
+                             <p class="text-gray-600 font-medium mb-8 text-lg">Ready to upgrade your infrastructure? Fill out the form to initialize contact with our command center.</p>
+                             <div class="space-y-4">
+                                 <div class="flex items-center gap-4">
+                                     <div class="w-10 h-10 bg-black text-white flex items-center justify-center rounded-full"><i data-lucide="mail" class="w-5 h-5"></i></div>
+                                     <span class="font-bold">hello@ejectsolutions.com</span>
+                                 </div>
+                                 <div class="flex items-center gap-4">
+                                     <div class="w-10 h-10 bg-black text-white flex items-center justify-center rounded-full"><i data-lucide="phone" class="w-5 h-5"></i></div>
+                                     <span class="font-bold">+91 955 019 4749</span>
+                                 </div>
+                             </div>
+                         </div>
+                         <div id="contact-interaction-area" class="relative">
+                            <!-- FORM -->
+                            <form id="eject-contact-form" action="https://formspree.io/f/xgovkwlw" method="POST" class="bg-white p-8 rounded-2xl border-2 border-black shadow-[8px_8px_0px_#dc2626] space-y-4 transition-all duration-500 transform origin-top relative z-10">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="text" name="name" placeholder="Name" required class="w-full bg-gray-50 border-2 border-gray-200 p-3 rounded font-bold text-black focus:outline-none focus:border-black focus:bg-white transition-colors">
+                                    <input type="text" name="company" placeholder="Company" class="w-full bg-gray-50 border-2 border-gray-200 p-3 rounded font-bold text-black focus:outline-none focus:border-black focus:bg-white transition-colors">
                                 </div>
-                                <div class="border-l-4 border-[var(--accent)] pl-4 theme-bg-card p-2 rounded-r-lg backdrop-blur-sm">
-                                    <h4 class="text-3xl font-bold theme-text-main">99.9%</h4>
-                                    <p class="text-sm theme-text-muted">Uptime Guaranteed</p>
+                                <input type="email" name="email" placeholder="Email Address" required class="w-full bg-gray-50 border-2 border-gray-200 p-3 rounded font-bold text-black focus:outline-none focus:border-black focus:bg-white transition-colors">
+                                <textarea name="message" placeholder="Project Details..." rows="4" required class="w-full bg-gray-50 border-2 border-gray-200 p-3 rounded font-bold text-black focus:outline-none focus:border-black focus:bg-white transition-colors"></textarea>
+                                
+                                <button id="form-submit-btn" type="submit" class="w-full btn-primary py-4 rounded-lg font-black uppercase text-lg flex justify-center items-center gap-2 overflow-hidden relative group">
+                                    <!-- Animated Loader Background inside button -->
+                                    <div id="btn-loader-bg" class="absolute inset-0 bg-yellow-400 transform -translate-x-full transition-transform duration-500 z-0"></div>
+                                    <span id="btn-text" class="relative z-10 group-hover:text-black transition-colors">Send Transmission</span>
+                                    
+                                    <div class="relative z-10 w-5 h-5 flex items-center justify-center group-hover:text-black transition-colors">
+                                        <i id="icon-send" data-lucide="send" class="w-4 h-4 transition-opacity absolute"></i>
+                                        <i id="icon-loader" data-lucide="loader-2" class="w-4 h-4 transition-opacity opacity-0 absolute animate-spin"></i>
+                                    </div>
+                                </button>
+                            </form>
+
+                            <!-- TERMINAL SUCCESS ANIMATION (Hidden Initially) -->
+                            <div id="success-terminal" class="hidden bg-black p-8 rounded-2xl border-2 border-black shadow-[8px_8px_0px_var(--primary)] flex-col justify-center relative overflow-hidden transition-all duration-500 min-h-[440px]">
+                                <div class="scanline"></div>
+                                <div id="terminal-content" class="text-green-400 font-mono text-sm sm:text-base space-y-3 z-10 relative mb-6">
+                                    <!-- Dynamic Typewriter lines go here -->
+                                </div>
+                                <div id="terminal-final" class="opacity-0 transition-opacity duration-700 z-10 relative mt-4">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <i data-lucide="shield-check" class="w-8 h-8 text-yellow-400"></i>
+                                        <h3 class="text-2xl font-black uppercase text-white m-0 tracking-wide">Data Secured</h3>
+                                    </div>
+                                    <p class="text-gray-400 font-medium text-sm mb-8">Command center will analyze your transmission and respond shortly.</p>
+                                    <button type="button" onclick="resetContactForm()" class="text-xs text-white uppercase font-bold border-b border-gray-600 hover:text-yellow-400 hover:border-yellow-400 transition-colors pb-1 inline-flex items-center gap-2">
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Initialize New Request
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                        <div class="relative reveal stagger-2 hidden sm:block">
-                             <div class="w-full h-64 theme-bg-card backdrop-blur-sm rounded-xl border border-slate-700/20 flex items-center justify-center shadow-2xl">
-                                <span class="theme-text-muted font-mono text-sm">[ TEAM IMAGE PLACEHOLDER ]</span>
-                             </div>
-                        </div>
-                    </div>
-                </div>
+                         </div>
+                     </div>
+                 </div>
             </section>
         </div>
 
-        <!-- VIEW: SERVICES LIST -->
         <div id="view-services" class="view-section">
             <section class="py-12 w-full">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="mb-8">
-                        <button onclick="navigateTo('home')" class="theme-text-muted hover:text-[var(--primary)] flex items-center gap-2 mb-4 text-sm p-2 -ml-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Home</button>
-                        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 break-words theme-text-main">Our Complete <span class="text-[var(--primary)]">Service Suite</span></h1>
+                    <div class="mb-12">
+                        <button onclick="navigateTo('home')" class="text-gray-500 hover:text-black flex items-center gap-2 mb-6 text-sm font-bold uppercase tracking-wider"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Home</button>
+                        <h1 class="text-5xl font-black mb-4 text-black">OUR SERVICE SUITE</h1>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 fade-in">
-                        <!-- Custom Dev -->
-                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
-                            <i data-lucide="code-2" class="w-10 h-10 text-[var(--primary)] mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2 theme-text-main">Custom Development</h3>
-                            <p class="theme-text-muted text-sm mb-4">Scalable Web Apps, APIs, and Enterprise Software using modern stacks.</p>
-                            <span class="text-[var(--primary)] text-sm font-semibold group-hover:underline">View Details</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 fade-in">
+                        <div onclick="openServiceDetail('custom-dev')" class="tilt-card cursor-pointer group bg-white p-8 rounded-xl hover:bg-yellow-50">
+                            <i data-lucide="code-2" class="w-12 h-12 text-black mb-6"></i>
+                            <h3 class="text-2xl font-black mb-3 text-black">Custom Development</h3>
+                            <p class="text-gray-600 text-sm mb-6 font-medium">Scalable Web Apps, APIs, and Enterprise Software using modern stacks.</p>
+                            <span class="text-black text-sm font-bold border-b-2 border-yellow-400">View Details</span>
                         </div>
-                        <!-- Cyber Sec -->
-                        <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
-                            <i data-lucide="shield-check" class="w-10 h-10 text-emerald-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2 theme-text-main">Cyber Security</h3>
-                            <p class="theme-text-muted text-sm mb-4">Vulnerability assessment, penetration testing, and security auditing.</p>
-                            <span class="text-emerald-500 text-sm font-semibold group-hover:underline">View Details</span>
+                        <div onclick="openServiceDetail('cyber-sec')" class="tilt-card cursor-pointer group bg-white p-8 rounded-xl hover:bg-gray-50">
+                            <i data-lucide="shield-check" class="w-12 h-12 text-black mb-6"></i>
+                            <h3 class="text-2xl font-black mb-3 text-black">Cyber Security</h3>
+                            <p class="text-gray-600 text-sm mb-6 font-medium">Vulnerability assessment, penetration testing, and security auditing.</p>
+                            <span class="text-black text-sm font-bold border-b-2 border-black">View Details</span>
                         </div>
-                        <!-- HR Solutions -->
-                        <div onclick="openServiceDetail('hr-sol')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
-                            <i data-lucide="users" class="w-10 h-10 text-yellow-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2 theme-text-main">HR Solutions</h3>
-                            <p class="theme-text-muted text-sm mb-4">Digital HR tools, automated payroll systems, and talent acquisition platforms.</p>
-                            <span class="text-yellow-500 text-sm font-semibold group-hover:underline">View Details</span>
+                        <div onclick="openServiceDetail('hr-sol')" class="tilt-card cursor-pointer group bg-white p-8 rounded-xl hover:bg-yellow-50">
+                            <i data-lucide="users" class="w-12 h-12 text-black mb-6"></i>
+                            <h3 class="text-2xl font-black mb-3 text-black">HR Solutions</h3>
+                            <p class="text-gray-600 text-sm mb-6 font-medium">Digital HR tools, automated payroll systems, and talent acquisition platforms.</p>
+                            <span class="text-black text-sm font-bold border-b-2 border-yellow-400">View Details</span>
                         </div>
-                         <!-- Content Marketing -->
-                         <div onclick="openServiceDetail('content-mkt')" class="tilt-card cursor-pointer group theme-bg-card backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-slate-700/20 hover:border-[var(--primary)] hover:shadow-xl active:bg-black/5">
-                            <i data-lucide="megaphone" class="w-10 h-10 text-rose-500 mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2 theme-text-main">Content Marketing</h3>
-                            <p class="theme-text-muted text-sm mb-4">Data-driven content strategies, SEO optimization, and social media campaigns.</p>
-                            <span class="text-rose-500 text-sm font-semibold group-hover:underline">View Details</span>
+                        <div onclick="openServiceDetail('content-mkt')" class="tilt-card cursor-pointer group bg-white p-8 rounded-xl hover:bg-gray-50">
+                            <i data-lucide="megaphone" class="w-12 h-12 text-black mb-6"></i>
+                            <h3 class="text-2xl font-black mb-3 text-black">Content Marketing</h3>
+                            <p class="text-gray-600 text-sm mb-6 font-medium">Data-driven content strategies, SEO optimization, and social media campaigns.</p>
+                            <span class="text-black text-sm font-bold border-b-2 border-black">View Details</span>
                         </div>
                     </div>
                 </div>
             </section>
         </div>
 
-        <!-- VIEW: SERVICE DETAIL -->
         <div id="view-service-detail" class="view-section">
             <section class="py-12 relative min-h-[80vh] w-full">
                  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-                    <div class="flex flex-wrap items-center gap-2 text-sm theme-text-muted">
-                        <button onclick="navigateTo('home')" class="hover:text-[var(--primary)] p-1">Home</button>
+                    <div class="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-400">
+                        <button onclick="navigateTo('home')" class="hover:text-black transition-colors">Home</button>
                         <span>/</span>
-                        <button onclick="navigateTo('services')" class="hover:text-[var(--primary)] p-1">Services</button>
+                        <button onclick="navigateTo('services')" class="hover:text-black transition-colors">Services</button>
                         <span>/</span>
-                        <span id="detail-breadcrumb-name" class="text-[var(--primary)] truncate max-w-[150px]">Current</span>
+                        <span id="detail-breadcrumb-name" class="text-black truncate max-w-[150px]">Current</span>
                     </div>
                 </div>
 
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
                         <div class="lg:col-span-2 order-2 lg:order-1">
-                            <div id="detail-icon-container" class="inline-block p-4 rounded-xl theme-bg-card mb-6 border border-slate-700/20 backdrop-blur-sm"></div>
-                            <h1 id="detail-title" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 theme-text-main break-words">Service Title</h1>
-                            <p id="detail-description" class="text-lg sm:text-xl theme-text-muted leading-relaxed mb-8">Service description placeholder text.</p>
+                            <div id="detail-icon-container" class="inline-block p-4 rounded-xl bg-white border-2 border-black mb-6 shadow-[4px_4px_0px_black]"></div>
+                            <h1 id="detail-title" class="text-4xl sm:text-5xl md:text-6xl font-black mb-6 text-black break-words uppercase">Service Title</h1>
+                            <p id="detail-description" class="text-lg sm:text-xl text-gray-700 leading-relaxed mb-10 font-medium">Service description placeholder text.</p>
 
-                            <div class="theme-bg-card rounded-xl p-6 border border-slate-700/20 mb-8 backdrop-blur-sm">
-                                <h3 class="text-lg font-bold theme-text-main mb-4">Key Features</h3>
-                                <ul id="detail-features" class="space-y-3"></ul>
+                            <div class="bg-yellow-50 rounded-xl p-8 border-2 border-black mb-8">
+                                <h3 class="text-xl font-black text-black mb-6 uppercase">Key Features</h3>
+                                <ul id="detail-features" class="space-y-4 font-medium"></ul>
                             </div>
                         </div>
 
                         <div class="lg:col-span-1 order-1 lg:order-2 mb-8 lg:mb-0">
-                            <div class="theme-bg-card rounded-2xl p-6 sm:p-8 border border-slate-700/20 lg:sticky lg:top-24 backdrop-blur-sm">
-                                <h3 class="text-2xl font-bold mb-4 theme-text-main">Ready to Deploy?</h3>
-                                <p class="theme-text-muted mb-6">Schedule a consultation with our experts.</p>
-                                <button onclick="navigateTo('contact')" class="w-full bg-[var(--primary)] hover:opacity-90 text-white font-bold py-4 rounded-lg transition-all shadow-lg mb-4 active:transform active:scale-95">
+                            <div class="bg-white rounded-2xl p-8 border-2 border-black shadow-[8px_8px_0px_black] lg:sticky lg:top-28">
+                                <h3 class="text-2xl font-black mb-4 text-black uppercase">Ready to Deploy?</h3>
+                                <p class="text-gray-600 mb-8 font-medium">Schedule a consultation with our experts.</p>
+                                <button onclick="scrollToContact()" class="w-full btn-primary py-4 rounded-lg font-black text-lg uppercase">
                                     Request Consultation
                                 </button>
                             </div>
@@ -464,155 +606,77 @@
             </section>
         </div>
 
-        <!-- VIEW: CONTACT -->
-        <div id="view-contact" class="view-section">
-            <section class="py-12 min-h-[80vh] flex flex-col justify-center w-full">
-                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center fade-in">
-                    <button onclick="navigateTo('home')" class="theme-text-muted hover:text-[var(--primary)] flex items-center gap-2 mb-8 mx-auto text-sm p-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Return to Base</button>
-                    
-                    <h2 class="text-3xl sm:text-4xl font-bold mb-6 theme-text-main">Initialize Contact Protocol</h2>
-                    <p class="text-lg sm:text-xl theme-text-muted mb-6 px-2">Fill out the parameters below.</p>
-
-                    <div class="mb-10 flex justify-center">
-                        <a href="https://wa.me/+919550194749" target="_blank" class="bg-[var(--primary)] hover:opacity-90 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-lg flex items-center gap-2 transform hover:scale-105">
-                            <i data-lucide="message-circle" class="w-5 h-5"></i> Click For immediate enquiries (WhatsApp)
-                        </a>
+        <!-- NEW: Knowledge Hub View -->
+        <div id="view-knowledge-hub" class="view-section">
+            <section class="min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="text-center mb-16 fade-in">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border-2 border-black bg-white mb-6 shadow-[4px_4px_0px_black]">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-black">Live Insights updated daily</span>
                     </div>
+                    <h1 class="text-4xl md:text-7xl font-black mb-6 text-black uppercase tracking-tight">Knowledge Hub</h1>
+                    <p class="text-xl text-gray-600 font-medium max-w-2xl mx-auto">Master the future with our curated insights, tech tools, and salary reports.</p>
                     
-                    <form id="contactForm" action="https://formspree.io/f/xgovkwlw" method="POST" class="theme-bg-card p-6 sm:p-8 rounded-2xl shadow-2xl border border-slate-700/20 max-w-lg mx-auto text-left w-full backdrop-blur-sm">
-                        <div class="mb-6">
-                            <label for="email" class="block text-sm font-medium theme-text-muted mb-2">Email Address</label>
-                            <input type="email" name="email" id="email" required class="w-full bg-slate-900/5 border border-slate-600/30 rounded-lg px-4 py-3 theme-text-main focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors" placeholder="you@company.com">
-                        </div>
-                        <div class="mb-6">
-                            <label for="service-select" class="block text-sm font-medium theme-text-muted mb-2">Interest Module</label>
-                            <select id="service-select" name="service" class="w-full bg-slate-900/5 border border-slate-600/30 rounded-lg px-4 py-3 theme-text-main focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors">
-                                <option>General Inquiry</option>
-                                <option>Custom Development</option>
-                                <option>HR Solutions</option>
-                                <option>Content Marketing</option>
-                            </select>
-                        </div>
-                        <div class="mb-6">
-                            <label for="message" class="block text-sm font-medium theme-text-muted mb-2">Message</label>
-                            <textarea id="message" name="message" rows="4" required class="w-full bg-slate-900/5 border border-slate-600/30 rounded-lg px-4 py-3 theme-text-main focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors" placeholder="Project specs..."></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-[var(--primary)] hover:opacity-90 text-white font-bold py-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 shadow-lg flex justify-center items-center gap-2 active:scale-95">
-                            Send Transmission <i data-lucide="send" class="w-4 h-4"></i>
-                        </button>
-                    </form>
+                    <div class="flex flex-wrap justify-center gap-4 mt-10">
+                        <button onclick="filterBlog('all')" class="blog-filter-btn px-6 py-3 rounded-lg active" data-category="all">All</button>
+                        <button onclick="filterBlog('ai-tools')" class="blog-filter-btn px-6 py-3 rounded-lg" data-category="ai-tools">AI Tools</button>
+                        <button onclick="filterBlog('tech')" class="blog-filter-btn px-6 py-3 rounded-lg" data-category="tech">Tech</button>
+                        <button onclick="filterBlog('hr')" class="blog-filter-btn px-6 py-3 rounded-lg" data-category="hr">HR & Jobs</button>
+                        <button onclick="filterBlog('marketing')" class="blog-filter-btn px-6 py-3 rounded-lg" data-category="marketing">Marketing</button>
+                    </div>
+                </div>
+                
+                <div id="blog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
+                    <!-- Blog posts will be injected here via JS -->
+                </div>
+            </section>
+        </div>
+
+        <!-- NEW: Blog Post View -->
+        <div id="view-blog-post" class="view-section">
+            <section class="min-h-screen max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-16">
+                <button onclick="navigateTo('knowledge-hub')" class="text-gray-500 hover:text-black flex items-center gap-2 mb-8 text-sm font-bold uppercase transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Hub
+                </button>
+                
+                <div id="blog-content-area" class="fade-in text-black"></div>
+                
+                <div class="mt-16 p-8 bg-black border-2 border-black rounded-2xl text-center mb-12 shadow-[8px_8px_0px_var(--primary)]">
+                    <h3 class="text-2xl font-black mb-2 text-white uppercase">Need help implementing this?</h3>
+                    <p class="text-gray-400 mb-8 font-medium">Our team specializes in exactly what you just read.</p>
+                    <button onclick="scrollToContact()" class="inline-block bg-[var(--primary)] text-black border-2 border-white px-8 py-4 rounded-lg font-black uppercase hover:bg-white hover:text-black hover:border-black transition-all transform hover:-translate-y-1 shadow-lg">Talk to an Expert</button>
                 </div>
             </section>
         </div>
 
     </main>
 
-    <!-- Footer (Global) -->
-    <footer class="bg-slate-950 pt-16 pb-8 border-t border-slate-900 w-full relative z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-12">
-                <div class="col-span-1 md:col-span-1">
-                    <div class="flex items-center gap-2 mb-4">
-                        <img src="EJ Logo Text Yellow.png" onerror="this.src='https://placehold.co/100x40?text=EJECT'" alt="Eject Solutions" class="h-10 w-auto object-contain brightness-0 invert">
-                    </div>
-                    <p class="text-slate-500 text-sm">Innovating the digital landscape one line of code at a time.</p>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4 text-white">Company</h4>
-                    <ul class="space-y-3 text-sm text-slate-400">
-                        <li><button onclick="navigateTo('home')" class="hover:text-white transition-colors text-left py-1">About Us</button></li>
-                        <li><button onclick="navigateTo('services')" class="hover:text-white transition-colors text-left py-1">Services</button></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4 text-white">Connect</h4>
-                    <div class="flex space-x-4">
-                        <a href="#" class="bg-slate-800 p-3 rounded-full hover:bg-violet-500 hover:text-white transition-all transform hover:scale-110"><i data-lucide="twitter" class="w-5 h-5"></i></a>
-                        <a href="#" class="bg-slate-800 p-3 rounded-full hover:bg-violet-700 hover:text-white transition-all transform hover:scale-110"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
-                        <a href="https://www.instagram.com/eject_solutions" target="_blank" class="bg-slate-800 p-3 rounded-full hover:bg-pink-600 hover:text-white transition-all transform hover:scale-110"><i data-lucide="instagram" class="w-5 h-5"></i></a>
-                        <a href="https://www.facebook.com/ejectsolutions" target="_blank" class="bg-slate-800 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110"><i data-lucide="facebook" class="w-5 h-5"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center text-slate-600 text-sm gap-4">
-                <p class="text-center md:text-left">&copy; 2026 Eject Solutions. All rights reserved.</p>
-            </div>
+    <!-- Footer -->
+    <footer class="bg-white pt-16 pb-8 border-t-2 border-black text-center text-black font-bold text-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>&copy; 2026 Eject Solutions. Built for the Future.</p>
         </div>
     </footer>
 
-    <!-- NEW: AUTH MODAL -->
-    <div id="auth-modal-overlay" class="modal-overlay">
-        <div class="auth-modal relative">
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-            
-            <!-- LOGIN FORM -->
-            <div id="login-form-container">
-                <h2 class="text-2xl font-bold theme-text-main mb-6">Welcome Back</h2>
-                <form onsubmit="handleLogin(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-sm theme-text-muted mb-1">Email</label>
-                        <input type="email" id="login-email" required class="w-full bg-slate-900/10 border border-slate-600/30 rounded-lg px-4 py-2 theme-text-main focus:outline-none focus:border-[var(--primary)]">
-                    </div>
-                    <div>
-                        <label class="block text-sm theme-text-muted mb-1">Password</label>
-                        <input type="password" id="login-password" required class="w-full bg-slate-900/10 border border-slate-600/30 rounded-lg px-4 py-2 theme-text-main focus:outline-none focus:border-[var(--primary)]">
-                    </div>
-                    <button type="submit" class="w-full bg-[var(--primary)] text-white font-bold py-3 rounded-lg hover:opacity-90 transition-all mt-2" id="login-btn">Sign In</button>
-                </form>
-                <p class="text-center mt-4 theme-text-muted text-sm">
-                    No account? <button onclick="toggleAuthMode('signup')" class="text-[var(--primary)] font-bold hover:underline">Create one</button>
-                </p>
+    <!-- Floating Action Button (Open Colabs) -->
+    <div class="fab-container group">
+        <span class="fab-label">Join the Network</span>
+        <a href="https://klradio.ejectsolutions.com" target="_blank" class="fab-button">
+            <div class="ping-indicator">
+                <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
             </div>
-
-            <!-- SIGNUP FORM -->
-            <div id="signup-form-container" class="hidden">
-                <h2 class="text-2xl font-bold theme-text-main mb-6">Join the Squad</h2>
-                <form onsubmit="handleSignup(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-sm theme-text-muted mb-1">Email</label>
-                        <input type="email" id="signup-email" required class="w-full bg-slate-900/10 border border-slate-600/30 rounded-lg px-4 py-2 theme-text-main focus:outline-none focus:border-[var(--primary)]">
-                    </div>
-                    <div>
-                        <label class="block text-sm theme-text-muted mb-1">Password</label>
-                        <input type="password" id="signup-password" required minlength="6" class="w-full bg-slate-900/10 border border-slate-600/30 rounded-lg px-4 py-2 theme-text-main focus:outline-none focus:border-[var(--primary)]">
-                        <p class="text-xs text-gray-500 mt-1">Min 6 characters</p>
-                    </div>
-                    <button type="submit" class="w-full bg-[var(--accent)] text-white font-bold py-3 rounded-lg hover:opacity-90 transition-all mt-2" id="signup-btn">Create Account</button>
-                </form>
-                <p class="text-center mt-4 theme-text-muted text-sm">
-                    Already have an account? <button onclick="toggleAuthMode('login')" class="text-[var(--primary)] font-bold hover:underline">Sign In</button>
-                </p>
-            </div>
-            
-            <div id="auth-error" class="text-red-500 text-sm text-center mt-4 hidden"></div>
-        </div>
+            OPEN COLABS
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+        </a>
     </div>
 
-    <!-- Scripts -->
     <script>
-        /* --- GLOBAL STATE --- */
-        window.currentUser = null;
-
-        /* --- 1. NEURAL NETWORK CANVAS ANIMATION --- */
+        /* --- 1. NEURAL NETWORK ANIMATION --- */
         const canvas = document.getElementById('neural-canvas');
         const ctx = canvas.getContext('2d');
-        let width, height;
-        let particles = [];
-        
-        // Configuration
-        const particleCount = window.innerWidth < 768 ? 30 : 80; // Fewer particles on mobile
-        const connectionDistance = 150;
-        const mouseDistance = 200;
+        let width, height, particles = [];
 
-        // Mouse tracking
-        let mouse = { x: null, y: null };
-
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.x;
-            mouse.y = e.y;
-        });
-
-        // Resize handling
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
@@ -620,191 +684,102 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // Particle Class
         class Particle {
             constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.5; // Velocity X
-                this.vy = (Math.random() - 0.5) * 0.5; // Velocity Y
-                this.size = Math.random() * 2 + 1;
-                this.color = '#8b5cf6'; // Violet base
+                this.x = Math.random() * width; this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 3 + 1;
             }
-
             update() {
-                // Move
-                this.x += this.vx;
-                this.y += this.vy;
-
-                // Bounce off edges
+                this.x += this.vx; this.y += this.vy;
                 if (this.x < 0 || this.x > width) this.vx *= -1;
                 if (this.y < 0 || this.y > height) this.vy *= -1;
-
-                // Mouse Interaction
-                if (mouse.x != null) {
-                    let dx = mouse.x - this.x;
-                    let dy = mouse.y - this.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance < mouseDistance) {
-                        const forceDirectionX = dx / distance;
-                        const forceDirectionY = dy / distance;
-                        const force = (mouseDistance - distance) / mouseDistance;
-                        // Gently push away
-                        const directionX = forceDirectionX * force * 2;
-                        const directionY = forceDirectionY * force * 2;
-                        this.x -= directionX;
-                        this.y -= directionY;
-                    }
-                }
             }
-
             draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = 0.5;
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = '#000000'; ctx.globalAlpha = 0.08; ctx.fill();
             }
         }
 
-        // Initialize Particles
-        function initParticles() {
-            particles = [];
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle());
-            }
-        }
+        for (let i = 0; i < 70; i++) particles.push(new Particle());
 
-        // Animation Loop
         function animate() {
             ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = '#000000';
+            ctx.globalAlpha = 0.03;
+            ctx.lineWidth = 1;
             
-            for (let i = 0; i < particles.length; i++) {
-                particles[i].update();
-                particles[i].draw();
-
-                // Draw Connections
-                for (let j = i; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance < connectionDistance) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = '#d946ef'; // Fuchsia lines
-                        ctx.lineWidth = 0.5;
-                        ctx.globalAlpha = 1 - (distance / connectionDistance); // Fade based on distance
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
+            for(let i=0; i<particles.length; i++) {
+                let p1 = particles[i];
+                p1.update();
+                p1.draw();
+                for(let j=i+1; j<particles.length; j++) {
+                    let p2 = particles[j];
+                    let dx = p1.x - p2.x;
+                    let dy = p1.y - p2.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
                     }
                 }
             }
             requestAnimationFrame(animate);
         }
-
-        initParticles();
         animate();
 
-
-        /* --- 2. 3D TILT CARD LOGIC --- */
-        const tiltCards = document.querySelectorAll('.tilt-card');
-
-        tiltCards.forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                // Calculate rotation based on mouse position relative to center
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                
-                // Limit rotation to 15 degrees
-                const rotateX = ((y - centerY) / centerY) * -10; 
-                const rotateY = ((x - centerX) / centerX) * 10;
-
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-            });
-
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
-            });
-        });
-
-
-        /* --- 3. EXISTING SITE LOGIC --- */
-
-        // Service Data Database
+        /* --- 2. SERVICE DATA & DETAILS --- */
         const servicesData = {
             'custom-dev': {
                 title: 'Custom Development',
                 description: 'We build robust, scalable applications tailored to your exact business specifications. From high-frequency trading platforms to complex inventory management systems, our code is optimized for performance and maintainability.',
-                iconName: 'code-2',
-                color: 'text-blue-500',
+                iconName: 'code-2', color: 'text-black',
                 features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Microservices Architecture</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>API First Design</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Legacy System Modernization</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>React/Vue/Angular Frontends</span></li>'
-                ],
-                updates: 'Latest commit: v4.2.1 optimized rendering engine • New library added for graph visualization • Patch 204 deployed to all staging environments.'
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> Microservices Architecture</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> API First Design</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> Legacy System Modernization</li>'
+                ]
             },
             'cyber-sec': {
                 title: 'Cyber Security',
-                description: 'In an era of digital warfare, your defenses must be impenetrable. We provide offensive and defensive security services, including Red Teaming, compliance auditing (SOC2, HIPAA), and real-time threat monitoring.',
-                iconName: 'shield-check',
-                color: 'text-emerald-500',
+                description: 'In an era of digital warfare, your defenses must be impenetrable. We provide offensive and defensive security services.',
+                iconName: 'shield-check', color: 'text-black',
                 features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>24/7 Threat Monitoring</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Penetration Testing</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Automated Compliance Checks</span></li>'
-                ],
-                updates: 'Threat Level: Low • Firewall definitions updated 2 mins ago • New zero-day vulnerability patch applied to all client servers.'
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-black rounded-full"><i data-lucide="check" class="w-3 h-3 text-white"></i></div> 24/7 Threat Monitoring</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-black rounded-full"><i data-lucide="check" class="w-3 h-3 text-white"></i></div> Penetration Testing</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-black rounded-full"><i data-lucide="check" class="w-3 h-3 text-white"></i></div> Automated Compliance Checks</li>'
+                ]
             },
             'hr-sol': {
                 title: 'HR Solutions',
-                description: 'Modernize your workforce management. We implement comprehensive HRIS (Human Resource Information Systems), automated payroll pipelines, and AI-driven talent acquisition tools to streamline your internal operations.',
-                iconName: 'users',
-                color: 'text-yellow-500',
+                description: 'Modernize your workforce management. We implement comprehensive HRIS pipelines.',
+                iconName: 'users', color: 'text-black',
                 features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Automated Payroll</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Talent Acquisition Portal</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Employee Self-Service App</span></li>'
-                ],
-                updates: 'Payroll tax engine updated for 2026 • Applicant Tracking System (ATS) v3.0 live • New employee onboarding workflow added.'
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> Automated Payroll</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> Talent Acquisition Portal</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> Employee Self-Service App</li>'
+                ]
             },
             'content-mkt': {
                 title: 'Content Marketing',
-                description: 'Engage your audience with precision. We combine creative storytelling with rigorous data analytics to deliver SEO-optimized content, social media automation, and conversion-focused copywriting.',
-                iconName: 'megaphone',
-                color: 'text-rose-500',
+                description: 'Engage your audience with precision. We combine creative storytelling with rigorous data analytics.',
+                iconName: 'megaphone', color: 'text-black',
                 features: [
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>SEO Strategy & Audit</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Social Media Automation</span></li>',
-                    '<li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500 flex-shrink-0"></i> <span>Conversion Copywriting</span></li>'
-                ],
-                updates: 'SEO algorithm monitor active • Viral campaign tracking enabled • New blog CMS integration available.'
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-black rounded-full"><i data-lucide="check" class="w-3 h-3 text-white"></i></div> SEO Strategy & Audit</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-black rounded-full"><i data-lucide="check" class="w-3 h-3 text-white"></i></div> Social Media Automation</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-black rounded-full"><i data-lucide="check" class="w-3 h-3 text-white"></i></div> Conversion Copywriting</li>'
+                ]
+            },
+            'ai-integ': {
+                title: 'AI Integration',
+                description: 'Leverage the power of Artificial Intelligence to automate complex tasks and gain predictive insights.',
+                iconName: 'cpu', color: 'text-black',
+                features: [
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> LLM Deployment</li>',
+                    '<li class="flex items-center gap-3"><div class="p-1 bg-yellow-400 rounded-full"><i data-lucide="check" class="w-3 h-3 text-black"></i></div> Predictive Analytics</li>'
+                ]
             }
         };
 
-        // Navigation Router Logic
-        function navigateTo(viewId) {
-            document.querySelectorAll('.view-section').forEach(el => {
-                el.classList.remove('active-view');
-            });
-            const target = document.getElementById(`view-${viewId}`);
-            if (target) {
-                target.classList.add('active-view');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                triggerReveal();
-            }
-            
-            document.getElementById('mobile-menu').classList.add('hidden');
-        }
-
-        // Open Detail Page
         function openServiceDetail(serviceKey) {
             const data = servicesData[serviceKey];
             if (!data) return;
@@ -822,115 +797,295 @@
             navigateTo('service-detail');
         }
 
-        lucide.createIcons();
+        /* --- 3. KNOWLEDGE HUB DATA & LOGIC --- */
+        const blogPosts = [
+            {
+                id: 'ai-vs-human-future', category: 'tech', title: 'The Human Edge: Why AI Will Never Replace You', excerpt: 'Fear not the algorithm. Discover why empathy, intuition, and ethical judgment make humans the ultimate "Operating System."', readTime: '6 MIN', image: 'https://placehold.co/600x400/000000/facc15?text=Human+vs+Machine',
+                content: `
+                    <div class="mb-10"><div class="inline-block bg-black text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">FUTURE OF WORK</div><h1 class="text-4xl md:text-6xl font-black mb-6 text-black uppercase leading-none">The Human Edge: Why AI Is Your Co-Pilot</h1><p class="text-xl text-gray-700 font-medium mb-6">In the streets of Hyderabad's H-Tech City, the conversation is shifting.</p><img src="https://placehold.co/800x400/facc15/000000?text=Human+Empathy+vs+AI+Logic" class="w-full rounded-xl border-2 border-black shadow-[8px_8px_0px_black] mb-8"></div>
+                    <div class="bg-yellow-50 border-2 border-black rounded-2xl p-8 mb-10 shadow-[4px_4px_0px_black]"><h3 class="text-xl font-black text-black mb-4 uppercase">⚔️ Interactive: The Capability Showdown</h3><div class="space-y-4"><div class="group relative bg-white p-4 rounded-lg border-2 border-black hover:bg-black transition-all cursor-pointer overflow-hidden"><div class="flex justify-between items-center relative z-10 group-hover:text-white"><span class="font-bold">Data Processing</span><span class="text-xs bg-black text-white px-2 py-1 rounded group-hover:bg-yellow-400 group-hover:text-black font-bold">Winner: AI 🤖</span></div></div></div></div>
+                    <div class="prose prose-lg max-w-none text-black font-medium"><p>AI models suffer from hallucinations. This is why the <strong>Human Auditor</strong> is the most secure job of 2026.</p></div>
+                `
+            },
+            {
+                id: 'ai-tools-2026', category: 'ai-tools', title: 'The Ultimate AI Stack for 2026', excerpt: 'Stop doing busy work. These 5 agentic tools are replacing entire manual workflows in Hyderabad tech firms.', readTime: '3 MIN', image: 'https://placehold.co/600x400/000000/10b981?text=AI+Tools+2026',
+                content: `
+                    <div class="mb-10"><div class="inline-block bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full mb-4 border border-emerald-300">AI TOOLS</div><h1 class="text-4xl md:text-5xl font-black mb-6 text-black uppercase">The Ultimate AI Stack for 2026</h1><img src="https://placehold.co/800x400/10b981/000000?text=Agentic+AI+Workflow" class="w-full rounded-xl border-2 border-black shadow-[8px_8px_0px_black] mb-8"></div>
+                    <div class="bg-white border-2 border-black rounded-2xl p-6 mb-10 shadow-[4px_4px_0px_var(--primary)]"><h3 class="text-xl font-black text-black mb-2 uppercase">⚡ Interactive: Efficiency Calculator</h3><div class="flex flex-wrap gap-6 items-end"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Hours/Week Spent</label><input type="number" id="calc-hours" class="calc-input" value="10" oninput="calcSavings()"></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Hourly Rate (₹)</label><input type="number" id="calc-rate" class="calc-input" value="500" oninput="calcSavings()"></div><div class="pb-1"><span class="text-black font-black text-2xl bg-yellow-400 px-2">Savings: ₹<span id="calc-result">20,000</span>/mo</span></div></div></div>
+                `
+            },
+            {
+                id: 'tech-salary-2026', category: 'tech', title: 'The 2026 Tech Salary Report', excerpt: 'Hyderabad recruitment hotspot. Top 5 skills paying ₹12LPA+.', readTime: '4 MIN', image: 'https://placehold.co/600x400/000000/8b5cf6?text=Tech+Salary+2026',
+                content: `<div class="mb-10"><h1 class="text-4xl md:text-5xl font-black mb-6 text-black uppercase">Hyderabad Tech Salary Report</h1><p>Agentic AI Engineers avg salary: ₹12 LPA.</p></div>`
+            },
+            {
+                id: 'hr-automation', category: 'hr', title: 'AI in HR: End of Resumes?', excerpt: 'Automated ATS systems are changing hiring in Hyderabad.', readTime: '3 MIN', image: 'https://placehold.co/600x400/000000/eab308?text=HR+Automation',
+                content: `<div class="mb-10"><h1 class="text-4xl md:text-5xl font-black mb-6 text-black uppercase">Is the Resume Dead?</h1><p>70% of companies use AI screening.</p></div>`
+            },
+            {
+                id: 'marketing-seo', category: 'marketing', title: 'SEO 2026: Zero-Click Search', excerpt: 'Google AI Overviews are taking over. Survive the shift.', readTime: '5 MIN', image: 'https://placehold.co/600x400/000000/ec4899?text=SEO+2026',
+                content: `<div class="mb-10"><h1 class="text-4xl md:text-5xl font-black mb-6 text-black uppercase">Surviving Zero-Click Search</h1><p>Focus on Brand Authority.</p></div>`
+            }
+        ];
 
-        // Reveal Animations
+        function filterBlog(category) {
+            document.querySelectorAll('.blog-filter-btn').forEach(btn => {
+                const isActive = btn.dataset.category === category;
+                if(isActive) btn.classList.add('active'); else btn.classList.remove('active');
+            });
+
+            const grid = document.getElementById('blog-grid'); 
+            grid.innerHTML = ''; 
+
+            const posts = category === 'all' ? blogPosts : blogPosts.filter(p => p.category === category);
+            
+            if(posts.length === 0) { 
+                grid.innerHTML = '<p class="col-span-3 text-center text-gray-500 font-bold text-lg py-12 uppercase">No articles found in this category.</p>'; 
+                return; 
+            }
+
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'tilt-card group bg-white rounded-2xl overflow-hidden cursor-pointer';
+                card.onclick = () => showPost(post.id);
+                
+                let badgeColor = 'bg-black text-white';
+                if(post.category === 'hr') badgeColor = 'bg-yellow-400 text-black';
+                if(post.category === 'marketing') badgeColor = 'bg-pink-500 text-white';
+
+                card.innerHTML = `
+                    <div class="h-56 overflow-hidden relative border-b-2 border-black">
+                        <img src="${post.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter grayscale group-hover:grayscale-0">
+                        <div class="absolute top-4 left-4 ${badgeColor} px-3 py-1 rounded-sm text-xs font-black uppercase border border-black shadow-[2px_2px_0px_black]">${post.category}</div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-xl font-black mb-3 text-black group-hover:text-[var(--primary-hover)] transition-colors uppercase leading-tight">${post.title}</h3>
+                        <p class="text-sm text-gray-600 font-medium line-clamp-2 mb-4">${post.excerpt}</p>
+                        <div class="flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-wide">
+                            <span>${post.readTime} READ</span>
+                            <span class="flex items-center gap-1 text-black group-hover:underline">Read Article <i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+            
+            // Re-init tilt for new cards
+            initTilt();
+            lucide.createIcons();
+        }
+
+        function showPost(id) {
+            const post = blogPosts.find(p => p.id === id); if(!post) return;
+            document.getElementById('blog-content-area').innerHTML = post.content;
+            navigateTo('blog-post');
+        }
+
+        function calcSavings() {
+            const hours = document.getElementById('calc-hours').value;
+            const rate = document.getElementById('calc-rate').value;
+            const result = (hours * rate) * 4;
+            document.getElementById('calc-result').innerText = result.toLocaleString();
+        }
+
+        /* --- 4. NAVIGATION LOGIC --- */
+        function navigateTo(viewId) {
+            // Hide mobile menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+
+            // Switch Views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            const target = document.getElementById(`view-${viewId}`);
+            if (target) {
+                target.classList.add('active-view');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // If navigating to knowledge hub root, load all posts
+                if(viewId === 'knowledge-hub') {
+                    filterBlog('all');
+                }
+                
+                triggerReveal();
+            }
+        }
+
+        function scrollToContact() {
+            // If we are on Home view, scroll to contact section
+            // If on another view, go to Home then scroll
+            const homeView = document.getElementById('view-home');
+            
+            if (!homeView.classList.contains('active-view')) {
+                navigateTo('home');
+                setTimeout(() => {
+                    document.getElementById('home-contact').scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            } else {
+                document.getElementById('home-contact').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        function scrollToContactMobile() {
+             document.getElementById('mobile-menu').classList.add('hidden');
+             scrollToContact();
+        }
+
+        /* --- 5. ANIMATIONS & EFFECTS --- */
         const triggerReveal = () => {
-            const revealElements = document.querySelectorAll('.reveal');
-            const windowHeight = window.innerHeight;
-            const elementVisible = 150;
-
-            revealElements.forEach((reveal) => {
+            document.querySelectorAll('.reveal').forEach((reveal) => {
                 const elementTop = reveal.getBoundingClientRect().top;
-                if (elementTop < windowHeight - elementVisible) {
+                if (elementTop < window.innerHeight - 150) {
                     reveal.classList.add('active');
                 }
             });
         };
-        
         window.addEventListener('scroll', triggerReveal);
-        triggerReveal(); 
+        triggerReveal();
 
-        // Navbar Logic
-        const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            // Placeholder for navbar background scroll logic if needed in future
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
         });
 
-        // Mobile Menu
-        const btn = document.getElementById('mobile-menu-btn');
-        const menu = document.getElementById('mobile-menu');
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
-
-        // Trigger Navbar Scan Animation
-        function triggerNavScan() {
-            const navbar = document.getElementById('navbar');
-            navbar.classList.remove('scan-active');
-            void navbar.offsetWidth;
-            navbar.classList.add('scan-active');
-            setTimeout(() => { navbar.classList.remove('scan-active'); }, 1500);
+        // TILT EFFECT
+        function initTilt() {
+            const tiltCards = document.querySelectorAll('.tilt-card');
+            tiltCards.forEach(card => {
+                card.onmousemove = (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    card.style.transform = `perspective(1000px) rotateX(${y / -20}deg) rotateY(${x / 20}deg) scale(1.01)`;
+                };
+                card.onmouseleave = () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+                };
+            });
         }
+        initTilt();
 
-        /* --- AUTH JS LOGIC --- */
+        /* --- 6. FORMSPREE AJAX SUBMISSION & TERMINAL ANIMATION --- */
+        const contactForm = document.getElementById('eject-contact-form');
+        const successTerminal = document.getElementById('success-terminal');
+        const submitBtn = document.getElementById('form-submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoaderBg = document.getElementById('btn-loader-bg');
+        const iconSend = document.getElementById('icon-send');
+        const iconLoader = document.getElementById('icon-loader');
+        const termContent = document.getElementById('terminal-content');
+        const termFinal = document.getElementById('terminal-final');
 
-        function openAuthModal(mode = 'login') {
-            document.getElementById('auth-modal-overlay').classList.add('open');
-            toggleAuthMode(mode);
-        }
-
-        function closeAuthModal() {
-            document.getElementById('auth-modal-overlay').classList.remove('open');
-            document.getElementById('auth-error').classList.add('hidden');
-        }
-
-        function toggleAuthMode(mode) {
-            document.getElementById('auth-error').classList.add('hidden');
-            if (mode === 'login') {
-                document.getElementById('login-form-container').classList.remove('hidden');
-                document.getElementById('signup-form-container').classList.add('hidden');
-            } else {
-                document.getElementById('login-form-container').classList.add('hidden');
-                document.getElementById('signup-form-container').classList.remove('hidden');
-            }
-        }
-
-        async function handleLogin(e) {
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const btn = document.getElementById('login-btn');
-            const errDiv = document.getElementById('auth-error');
+
+            // Set Loading UI State
+            btnText.innerText = 'ENCRYPTING...';
+            submitBtn.classList.add('pointer-events-none');
+            iconSend.classList.replace('opacity-100', 'opacity-0'); 
+            iconLoader.classList.replace('opacity-0', 'opacity-100');
             
+            // Slide in the yellow loading background
+            btnLoaderBg.style.transform = 'translateX(0)';
+
+            const formData = new FormData(contactForm);
+
             try {
-                btn.textContent = 'Verifying...';
-                await window.signInWithEmailAndPassword(window.auth, email, password);
-                closeAuthModal();
+                // Send Form Data silently to Formspree
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.ok) {
+                    // Hide the form smoothly, and reveal Terminal
+                    contactForm.style.opacity = '0';
+                    contactForm.style.transform = 'scale(0.95)';
+                    
+                    setTimeout(() => {
+                        contactForm.classList.add('hidden');
+                        successTerminal.classList.remove('hidden');
+                        successTerminal.classList.add('flex');
+                        runTerminalAnimation();
+                    }, 500); 
+
+                } else {
+                    showFormError();
+                }
             } catch (error) {
-                errDiv.textContent = error.message.replace('Firebase: ', '');
-                errDiv.classList.remove('hidden');
-            } finally {
-                btn.textContent = 'Sign In';
+                showFormError();
+            }
+        });
+
+        async function runTerminalAnimation() {
+            // Sequence of fake commands for the terminal effect
+            const lines = [
+                "[SYSTEM] Uplink connection established...",
+                "[NET] Routing payload through proxy nodes...",
+                "[SEC] Evaluating Formspree auth headers...",
+                "[DATA] 200 OK. Transmission written to ledger.",
+                "[SYS] Terminating connection. Standby."
+            ];
+
+            termContent.innerHTML = '';
+            termFinal.style.opacity = '0';
+            lucide.createIcons(); // Initialize the shield icon in the final state
+
+            for (let line of lines) {
+                const el = document.createElement('div');
+                el.className = "flex items-start sm:items-center gap-2 w-full overflow-hidden";
+                el.innerHTML = `<span class="text-yellow-400 font-bold shrink-0">></span> <span class="typewriter-line">${line}</span>`;
+                termContent.appendChild(el);
+                
+                // Wait for CSS typing animation + small buffer
+                await new Promise(r => setTimeout(r, 600)); 
+            }
+
+            // Reveal the final confirmation block
+            setTimeout(() => {
+                termFinal.style.opacity = '1';
+            }, 300);
+        }
+
+        function showFormError() {
+            // Reset state to error if Formspree throws an issue
+            btnText.innerText = 'TRANSMISSION FAILED - RETRY';
+            iconSend.setAttribute('data-lucide', 'alert-triangle');
+            iconLoader.classList.replace('opacity-100', 'opacity-0');
+            iconSend.classList.replace('opacity-0', 'opacity-100');
+            lucide.createIcons();
+            
+            submitBtn.classList.remove('pointer-events-none');
+            btnLoaderBg.classList.replace('bg-yellow-400', 'bg-red-600');
+        }
+
+        function resetContactForm() {
+            // Soft reset to allow new submissions
+            contactForm.reset();
+            
+            // Revert views
+            successTerminal.classList.add('hidden');
+            successTerminal.classList.remove('flex');
+            contactForm.classList.remove('hidden');
+            
+            setTimeout(() => {
+                contactForm.style.opacity = '1';
+                contactForm.style.transform = 'scale(1)';
+            }, 50);
+
+            // Revert button logic
+            btnText.innerText = 'Send Transmission';
+            iconSend.setAttribute('data-lucide', 'send');
+            iconSend.classList.replace('opacity-0', 'opacity-100');
+            iconLoader.classList.replace('opacity-100', 'opacity-0');
+            lucide.createIcons();
+            
+            submitBtn.classList.remove('pointer-events-none');
+            btnLoaderBg.style.transform = 'translateX(-100%)';
+            if (btnLoaderBg.classList.contains('bg-red-600')) {
+                 btnLoaderBg.classList.replace('bg-red-600', 'bg-yellow-400');
             }
         }
 
-        async function handleSignup(e) {
-            e.preventDefault();
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const btn = document.getElementById('signup-btn');
-            const errDiv = document.getElementById('auth-error');
-
-            try {
-                btn.textContent = 'Creating Account...';
-                await window.createUserWithEmailAndPassword(window.auth, email, password);
-                closeAuthModal();
-            } catch (error) {
-                errDiv.textContent = error.message.replace('Firebase: ', '');
-                errDiv.classList.remove('hidden');
-            } finally {
-                btn.textContent = 'Create Account';
-            }
-        }
-
-        async function handleLogout() {
-            try {
-                await window.signOut(window.auth);
-            } catch (error) {
-                console.error("Logout failed", error);
-            }
-        }
+        /* --- 7. INIT ALL ICONS --- */
+        lucide.createIcons();
     </script>
 </body>
 </html>
